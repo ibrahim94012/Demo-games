@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MINES BD — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070910;--s1:#0e1018;--s2:#141720;--s3:#1c2030;--s4:#242840;
+  --border:#252a3a;--border2:#2f354a;
+  --accent:#00e5a0;--accent-d:#00b070;--accent-g:rgba(0,229,160,.12);
+  --blue:#0af;--gold:#ffc840;--danger:#ff3b5c;--danger-g:rgba(255,59,92,.12);
+  --bkash:#e2136e;--bkash-d:#b50055;
+  --purple:#a259ff;--orange:#ff8c42;
+  --text:#dde1ef;--text2:#7a839a;--text3:#4a5268;
+  --r:10px;
+  --fh:'Teko',sans-serif;--fb:'Barlow Condensed',sans-serif;--fm:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,160,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,.02) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+
+/* LAYOUT */
+.shell{display:flex;min-height:100vh;position:relative;z-index:2}
+.sidebar{width:220px;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .25s}
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-txt{font-family:var(--fh);font-size:1.7rem;font-weight:700;letter-spacing:4px;color:var(--accent);text-shadow:0 0 30px rgba(0,229,160,.35)}
+.logo-txt b{color:var(--danger)}
+.admin-badge{background:rgba(255,59,92,.12);border:1px solid rgba(255,59,92,.3);border-radius:5px;padding:1px 6px;font-size:.62rem;font-weight:700;color:var(--danger);letter-spacing:1px;margin-left:auto}
+.nav-section{padding:14px 10px 6px;font-size:.62rem;font-weight:700;color:var(--text3);letter-spacing:2px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;cursor:pointer;color:var(--text2);font-weight:700;font-size:.88rem;letter-spacing:.3px;transition:all .18s;margin:1px 6px;position:relative}
+.nav-item:hover{background:var(--s2);color:var(--text)}
+.nav-item.active{background:var(--accent-g);color:var(--accent);border:1px solid rgba(0,229,160,.18)}
+.nav-item .ico{font-size:1rem;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--danger);color:#fff;font-size:.6rem;font-weight:700;border-radius:10px;padding:1px 6px;min-width:18px;text-align:center}
+.sidebar-footer{margin-top:auto;padding:14px 10px;border-top:1px solid var(--border)}
+.admin-info{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;background:var(--s2);border:1px solid var(--border)}
+.admin-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--danger),#a0001e);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:.9rem;color:#fff;flex-shrink:0}
+.admin-name{font-weight:700;font-size:.84rem}
+.admin-role{font-size:.68rem;color:var(--danger);font-weight:600;letter-spacing:.5px}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;padding:22px 24px 60px;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:12px}
+.page-title{font-family:var(--fh);font-size:1.8rem;letter-spacing:3px}
+.page-sub{font-size:.8rem;color:var(--text2);font-weight:600;margin-top:2px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:8px;cursor:pointer;font-family:var(--fb);font-weight:700;transition:all .2s;letter-spacing:.5px}
+.btn-sm{padding:7px 14px;font-size:.84rem}
+.btn-md{padding:9px 18px;font-size:.91rem}
+.btn-lg{width:100%;padding:12px;font-size:1.25rem;border-radius:var(--r);font-family:var(--fh);letter-spacing:2px}
+.btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent-d));color:#071510;box-shadow:0 4px 16px rgba(0,229,160,.25)}
+.btn-accent:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(0,229,160,.4)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#e6a800);color:#1a1000;box-shadow:0 4px 16px rgba(255,200,64,.25)}
+.btn-gold:hover{transform:translateY(-1px)}
+.btn-danger{background:linear-gradient(135deg,var(--danger),#c01535);color:#fff;box-shadow:0 4px 16px rgba(255,59,92,.25)}
+.btn-danger:hover{transform:translateY(-1px)}
+.btn-purple{background:linear-gradient(135deg,var(--purple),#7a30d4);color:#fff;box-shadow:0 4px 16px rgba(162,89,255,.25)}
+.btn-purple:hover{transform:translateY(-1px)}
+.btn-ghost{background:var(--s3);border:1px solid var(--border2);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-firebase{background:linear-gradient(135deg,#ff6d00,#ffab00);color:#1a0a00;box-shadow:0 4px 16px rgba(255,109,0,.25)}
+.btn-firebase:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* STAT CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.stat-card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:18px}
+.sc-label{font-size:.68rem;font-weight:700;color:var(--text2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.sc-val{font-family:var(--fh);font-size:2.1rem;line-height:1;margin-bottom:2px}
+.sc-sub{font-size:.75rem;color:var(--text2);font-weight:600}
+.sc-icon{font-size:1.5rem;margin-bottom:8px}
+
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:20px}
+.card-title{font-family:var(--fh);font-size:1.15rem;letter-spacing:2px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.87rem}
+thead th{background:var(--s2);padding:10px 13px;text-align:left;font-size:.68rem;font-weight:700;color:var(--text2);letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+tbody td{padding:11px 13px;vertical-align:middle}
+.user-cell{display:flex;align-items:center;gap:9px}
+.uav{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:.82rem;color:#000;flex-shrink:0}
+.uav.red{background:linear-gradient(135deg,var(--danger),#a0001e)}
+.uname{font-weight:700;font-size:.87rem}
+.usub{font-size:.7rem;color:var(--text2)}
+.mono{font-family:var(--fm);font-size:.78rem}
+.badge{display:inline-flex;border-radius:20px;padding:2px 9px;font-size:.68rem;font-weight:700;letter-spacing:.4px}
+.badge-green{background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);color:var(--accent)}
+.badge-red{background:rgba(255,59,92,.1);border:1px solid rgba(255,59,92,.3);color:var(--danger)}
+.badge-gold{background:rgba(255,200,64,.1);border:1px solid rgba(255,200,64,.3);color:var(--gold)}
+.badge-blue{background:rgba(0,170,255,.1);border:1px solid rgba(0,170,255,.3);color:var(--blue)}
+.badge-gray{background:rgba(120,130,160,.1);border:1px solid rgba(120,130,160,.25);color:var(--text2)}
+
+/* SEARCH & FILTERS */
+.filter-bar{display:flex;align-items:center;gap:9px;margin-bottom:16px;flex-wrap:wrap}
+.search-wrap{flex:1;min-width:200px;position:relative}
+.search-wrap input{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--fb);font-size:.9rem;padding:8px 12px 8px 36px;outline:none;transition:border-color .2s}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.88rem;pointer-events:none}
+.fi-sel{background:var(--s2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--fb);font-size:.88rem;padding:8px 12px;outline:none;cursor:pointer}
+.fi-sel:focus{border-color:var(--accent)}
+.fi{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--fb);font-size:.92rem;padding:9px 12px;outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--accent)}
+.fg{margin-bottom:12px}
+.fl{display:block;font-size:.68rem;font-weight:700;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.emsg{color:var(--danger);font-size:.74rem;font-weight:600;margin-top:3px;display:none}
+.emsg.show{display:block}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:500;backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:12px}
+.overlay.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--border2);border-radius:16px;width:480px;max-width:100%;max-height:92vh;overflow-y:auto;animation:mIn .28s cubic-bezier(.34,1.56,.64,1)}
+.modal::-webkit-scrollbar{width:4px}
+.modal::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+@keyframes mIn{from{transform:scale(.88) translateY(16px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.mhead{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mtitle{font-family:var(--fh);font-size:1.25rem;letter-spacing:2px}
+.btnx{background:var(--s3);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:all .2s}
+.btnx:hover{border-color:var(--danger);color:var(--danger)}
+.mbody{padding:20px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
+
+/* SETUP BANNER */
+.setup-banner{background:linear-gradient(135deg,rgba(255,109,0,.1),rgba(255,171,0,.04));border:1px solid rgba(255,109,0,.28);border-radius:10px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.setup-banner.connected{background:linear-gradient(135deg,rgba(0,229,160,.08),rgba(0,229,160,.03));border-color:rgba(0,229,160,.22);cursor:default}
+.sb-ico{font-size:1.4rem}
+.sb-txt{flex:1}
+.sb-t{font-weight:700;font-size:.92rem;color:#ffab00}
+.setup-banner.connected .sb-t{color:var(--accent)}
+.sb-s{font-size:.76rem;color:var(--text2)}
+
+/* SETUP MODAL — Firebase fields */
+.fb-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.setup-step{background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;margin-bottom:9px;font-size:.83rem;color:var(--text2);line-height:1.6}
+.setup-step strong{color:var(--text)}
+.setup-step code{background:var(--s3);padding:1px 5px;border-radius:4px;color:#ffab00;font-family:var(--fm);font-size:.75rem}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;background:linear-gradient(135deg,#ff6d00,#ffab00);border-radius:50%;font-size:.68rem;font-weight:700;color:#1a0800;margin-right:6px;flex-shrink:0;vertical-align:middle}
+
+/* TX ACTIONS */
+.tx-actions{display:flex;gap:5px}
+.action-btn{background:transparent;border:1px solid var(--border2);border-radius:6px;padding:4px 9px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--fb);transition:all .15s}
+.action-btn.approve{color:var(--accent);border-color:rgba(0,229,160,.3)}
+.action-btn.approve:hover{background:rgba(0,229,160,.1);border-color:var(--accent)}
+.action-btn.reject{color:var(--danger);border-color:rgba(255,59,92,.3)}
+.action-btn.reject:hover{background:rgba(255,59,92,.1);border-color:var(--danger)}
+.action-btn.edit{color:var(--blue);border-color:rgba(0,170,255,.3)}
+.action-btn.edit:hover{background:rgba(0,170,255,.1);border-color:var(--blue)}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;align-items:flex-end;gap:7px;pointer-events:none}
+.toast{background:var(--s2);border:1px solid var(--border2);border-radius:9px;padding:10px 18px;font-weight:600;font-size:.86rem;opacity:0;transform:translateX(30px);transition:all .35s cubic-bezier(.34,1.56,.64,1);white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(0)}
+.toast.tw{border-color:rgba(0,229,160,.5);color:var(--accent)}
+.toast.tl{border-color:rgba(255,59,92,.5);color:var(--danger)}
+.toast.ti{border-color:rgba(255,200,64,.5);color:var(--gold)}
+
+/* CONFIRM DIALOG */
+.confirm-box{background:var(--s1);border:1px solid var(--border2);border-radius:14px;padding:28px;max-width:380px;width:100%;text-align:center;animation:mIn .28s ease}
+.confirm-ico{font-size:2.8rem;margin-bottom:10px}
+.confirm-t{font-family:var(--fh);font-size:1.4rem;letter-spacing:2px;margin-bottom:6px}
+.confirm-s{color:var(--text2);font-size:.85rem;margin-bottom:20px;line-height:1.5}
+.confirm-btns{display:flex;gap:10px}
+.confirm-btns .btn{flex:1}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:40px 20px;color:var(--text2)}
+.empty-ico{font-size:2.5rem;margin-bottom:9px}
+.empty-t{font-weight:700;font-size:.95rem;margin-bottom:4px}
+.empty-s{font-size:.8rem}
+
+/* USER PROFILE MODAL */
+.prof-hero-admin{display:flex;align-items:center;gap:16px;padding:18px 20px;background:linear-gradient(135deg,rgba(0,229,160,.07),rgba(0,170,255,.04));border-bottom:1px solid var(--border)}
+.av-lg{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:1.6rem;color:#000;flex-shrink:0}
+.slist{display:flex;flex-direction:column;gap:7px}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:8px 11px;background:var(--s2);border-radius:7px;border:1px solid var(--border)}
+.srl{color:var(--text2);font-size:.83rem;font-weight:600}
+.srv{font-family:var(--fh);font-size:1rem}
+
+/* SPIN */
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.2);border-top-color:currentColor;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:4px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-size:.82rem;color:var(--text2);flex-wrap:wrap;gap:8px}
+.page-btns{display:flex;gap:5px}
+.page-btn{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:5px 11px;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--text2);font-family:var(--fb);transition:all .15s}
+.page-btn:hover{border-color:var(--accent);color:var(--accent)}
+.page-btn.active{background:var(--accent-g);border-color:rgba(0,229,160,.3);color:var(--accent)}
+.page-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* HAMBURGER */
+.ham{display:none;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;cursor:pointer;font-size:1.1rem;color:var(--text);margin-right:8px}
+
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .ham{display:flex;align-items:center}
+  .fb-grid{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+  .stats-row{grid-template-columns:1fr}
+  .main{padding:14px 12px 60px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-txt">MINE<b>S</b> BD</div>
+    <div class="admin-badge">ADMIN</div>
+  </div>
+  <div class="nav-section">Main</div>
+  <div class="nav-item active" onclick="switchPage('dashboard')" data-page="dashboard"><span class="ico">📊</span> Dashboard</div>
+  <div class="nav-item" onclick="switchPage('users')" data-page="users"><span class="ico">👥</span> Users <span class="nav-badge" id="nbUsers">—</span></div>
+  <div class="nav-section">Finance</div>
+  <div class="nav-item" onclick="switchPage('deposits')" data-page="deposits"><span class="ico">📥</span> Deposits <span class="nav-badge" id="nbDeps" style="background:var(--gold);color:#111">—</span></div>
+  <div class="nav-item" onclick="switchPage('withdrawals')" data-page="withdrawals"><span class="ico">📤</span> Withdrawals <span class="nav-badge" id="nbWds" style="background:var(--gold);color:#111">—</span></div>
+  <div class="nav-item" onclick="switchPage('transactions')" data-page="transactions"><span class="ico">📋</span> All Transactions</div>
+  <div class="nav-section">Game</div>
+  <div class="nav-item" onclick="switchPage('games')" data-page="games"><span class="ico">💣</span> Game Logs</div>
+  <div class="nav-item" onclick="switchPage('leaderboard')" data-page="leaderboard"><span class="ico">🏆</span> Leaderboard</div>
+  <div class="nav-section">Settings</div>
+  <div class="nav-item" onclick="switchPage('settings')" data-page="settings"><span class="ico">⚙️</span> Settings</div>
+  <div class="sidebar-footer">
+    <div class="admin-info">
+      <div class="admin-av">A</div>
+      <div><div class="admin-name">Admin</div><div class="admin-role">SUPER ADMIN</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main" id="mainArea">
+
+<!-- SETUP BANNER -->
+<div class="setup-banner" id="setupBanner" onclick="openSetup()">
+  <div class="sb-ico">🔥</div>
+  <div class="sb-txt">
+    <div class="sb-t">Connect Firebase Backend</div>
+    <div class="sb-s">Paste your Firebase config to load live data</div>
+  </div>
+  <button class="btn btn-sm btn-firebase">CONNECT</button>
+</div>
+
+<!-- ════════ DASHBOARD ════════ -->
+<div class="page active" id="page-dashboard">
+  <div class="topbar">
+    <div><div style="display:flex;align-items:center;gap:10px"><button class="ham" onclick="toggleSidebar()">☰</button><div><div class="page-title">📊 DASHBOARD</div><div class="page-sub">Real-time overview of MINES BD</div></div></div></div>
+    <div class="topbar-right">
+      <button class="btn btn-sm btn-accent" onclick="refreshAll()">↻ Refresh</button>
+    </div>
+  </div>
+  <div class="stats-row" id="dashStats">
+    <div class="stat-card"><div class="sc-icon">👥</div><div class="sc-label">Total Users</div><div class="sc-val" id="st-users" style="color:var(--accent)">—</div><div class="sc-sub">Registered accounts</div></div>
+    <div class="stat-card"><div class="sc-icon">💰</div><div class="sc-label">Total Balance</div><div class="sc-val" id="st-bal" style="color:var(--gold)">—</div><div class="sc-sub">Across all wallets</div></div>
+    <div class="stat-card"><div class="sc-icon">⏳</div><div class="sc-label">Pending Deposits</div><div class="sc-val" id="st-pend" style="color:var(--bkash)">—</div><div class="sc-sub">Awaiting approval</div></div>
+    <div class="stat-card"><div class="sc-icon">🎮</div><div class="sc-label">Total Games</div><div class="sc-val" id="st-games" style="color:var(--purple)">—</div><div class="sc-sub">Played all time</div></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-title">⏳ Pending Deposits <span id="pendDepBadge" class="badge badge-gold">0</span></div>
+      <div id="dashPendDep"><div class="empty-state"><div class="empty-ico">📭</div><div class="empty-t">No pending deposits</div><div class="empty-s">All caught up!</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📤 Pending Withdrawals <span id="pendWdBadge" class="badge badge-red">0</span></div>
+      <div id="dashPendWd"><div class="empty-state"><div class="empty-ico">📭</div><div class="empty-t">No pending withdrawals</div><div class="empty-s">All caught up!</div></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🕒 Recent Registrations</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>User</th><th>Phone</th><th>Balance</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody id="dashNewUsers"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2)">Connect Firebase to load data</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ USERS ════════ -->
+<div class="page" id="page-users">
+  <div class="topbar">
+    <div><div style="display:flex;align-items:center;gap:10px"><button class="ham" onclick="toggleSidebar()">☰</button><div><div class="page-title">👥 USERS</div><div class="page-sub" id="userCountLbl">Manage all player accounts</div></div></div></div>
+    <div class="topbar-right">
+      <button class="btn btn-sm btn-accent" onclick="openAddUser()">+ Add User</button>
+      <button class="btn btn-sm btn-ghost" onclick="loadUsers()">↻ Refresh</button>
+    </div>
+  </div>
+  <div class="filter-bar">
+    <div class="search-wrap"><span class="search-ico">🔍</span><input type="text" id="userSearch" placeholder="Search username, phone, email…" oninput="filterUsers()"></div>
+    <select class="fi-sel" id="userSort" onchange="filterUsers()">
+      <option value="joined_desc">Newest First</option>
+      <option value="joined_asc">Oldest First</option>
+      <option value="balance_desc">Highest Balance</option>
+      <option value="bets_desc">Most Bets</option>
+      <option value="profit_desc">Most Profit</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>User</th><th>Phone</th><th>Balance</th><th>Pending</th><th>Bets</th><th>W/L</th><th>Profit</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="usersBody"><tr><td colspan="10" style="text-align:center;padding:20px;color:var(--text2)">Connect Firebase to load users</td></tr></tbody>
+      </table>
+    </div>
+    <div class="pagination"><span id="userPagInfo">—</span><div class="page-btns" id="userPagBtns"></div></div>
+  </div>
+</div>
+
+<!-- ════════ DEPOSITS ════════ -->
+<div class="page" id="page-deposits">
+  <div class="topbar">
+    <div><div style="display:flex;align-items:center;gap:10px"><button class="ham" onclick="toggleSidebar()">☰</button><div><div class="page-title">📥 DEPOSITS</div><div class="page-sub">Review and approve bKash deposits</div></div></div></div>
+    <div class="topbar-right"><button class="btn btn-sm btn-ghost" onclick="loadTransactions()">↻ Refresh</button></div>
+  </div>
+  <div class="filter-bar">
+    <div class="search-wrap"><span class="search-ico">🔍</span><input type="text" id="depSearch" placeholder="Search user, TrxID…" oninput="filterDeposits()"></div>
+    <select class="fi-sel" id="depFilter" onchange="filterDeposits()">
+      <option value="all">All</option>
+      <option value="pending">Pending</option>
+      <option value="completed">Approved</option>
+      <option value="rejected">Rejected</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>TrxID</th><th>User</th><th>Amount</th><th>bKash #</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="depsBody"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text2)">Connect Firebase to load deposits</td></tr></tbody>
+      </table>
+    </div>
+    <div class="pagination"><span id="depPagInfo">—</span><div class="page-btns" id="depPagBtns"></div></div>
+  </div>
+</div>
+
+<!-- ════════ WITHDRAWALS ════════ -->
+<div class="page" id="page-withdrawals">
+  <div class="topbar">
+    <div><div style="display:flex;align-items:center;gap:10px"><button class="ham" onclick="toggleSidebar()">☰</button><div><div class="page-title">📤 WITHDRAWALS</div><div class="page-sub">Process user withdrawal requests</div></div></div></div>
+    <div class="topbar-right"><button class="btn btn-sm btn-ghost" onclick="loadTransactions()">↻ Refresh</button></div>
+  </div>
+  <div class="filter-bar">
+    <div class="search-wrap"><span class="search-ico">🔍</span><input type="text" id="wdSearch" placeholder="Search user, phone…" oninput="filterWithdrawals()"></div>
+    <select class="fi-sel" id="wdFilter" onchange="filterWithdrawals()">
+      <option value="all">All</option>
+      <option value="pending">Pending</option>
+      <option value="completed">Completed</option>
+      <option value="rejected">Rejected</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>User</th><th>Amount</th><th>bKash #</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="wdsBody"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text2)">Connect Firebase to load withdrawals</td></tr></tbody>
+      </table>
+    </div>
+    <div class="pagination"><span id="wdPagInfo">—</span><div class="page-btns" id="wdPagBtns"></div></div>
+  </div>
+</div>
+
+<!-- ════════ ALL TRANSACTIONS ════════ -->
+<div class="page" id="page-transactions">
+  <div class="topbar">
+    <div><div style="display:flex;align-items:center;gap:10px"><button class="ham" onclick="toggleSidebar()">☰</button><div><div class="page-title">📋 TRANSACTIONS</div><div class="page-sub">Complete transaction history</div></div></div></div>
+    <div class="topbar-right"><button class="btn btn-sm btn-ghost" onclick="loadTransactions()">↻ Refresh</button></div>
+  </div>
+  <div class="filter-bar">
+    <div class="search-wrap"><span class="search-ico">🔍</span><input type="text" id="txSearch" placeholder="Search user, type…" oninput="filterTx()"></div>
+    <select class="fi-sel" id="txTypeFilter" onchange="filterTx()">
+      <option value="all">All Types</option>
+      <option value="deposit">Deposits</option>
+      <option value="withdrawal">Withdrawals</option>
+      <option value="cashout">Cashouts</option>
+      <option value="loss">Losses</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>User</th><th>Type</th><th>Amount</th><th>Note</th><th>Status</th><th>Time</th></tr></thead>
+        <tbody id="txBody"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text2)">Connect Firebase to load transactions</td></tr></tbody>
+      </table>
+    </div>
+    <div class="pagination"><span id="txPagInfo">—</span><div class="page-btns" id="txPagBtns"></div></div>
+  </div>
+</div>
+
+<!-- ════════ GAME LOGS ════════ -->
+<div class="page" id="page-games">
+  <div class="topbar">
+    <div><div style="display:flex;align-items:center;gap:10px"><button class="ham" onclick="toggleSidebar()">☰</button><div><div class="page-title">💣 GAME LOGS</div><div class="page-sub">All gameplay records</div></div></div></div>
+    <div class="topbar-right"><button class="btn btn-sm btn-ghost" onclick="loadGames()">↻ Refresh</button></div>
+  </div>
+  <div class="filter-bar">
+    <div class="search-wrap"><span class="search-ico">🔍</span><input type="text" id="gameSearch" placeholder="Search username…" oninput="filterGames()"></div>
+    <select class="fi-sel" id="gameResult" onchange="filterGames()">
+      <option value="all">All Results</option>
+      <option value="win">Wins Only</option>
+      <option value="loss">Losses Only</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>User</th><th>Bet</th><th>Mines</th><th>Gems</th><th>Multiplier</th><th>Payout</th><th>Result</th><th>Time</th></tr></thead>
+        <tbody id="gamesBody"><tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text2)">Connect Firebase to load game logs</td></tr></tbody>
+      </table>
+    </div>
+    <div class="pagination"><span id="gamePagInfo">—</span><div class="page-btns" id="gamePagBtns"></div></div>
+  </div>
+</div>
+
+<!-- ════════ LEADERBOARD ════════ -->
+<div class="page" id="page-leaderboard">
+  <div class="topbar">
+    <div><div style="display:flex;align-items:center;gap:10px"><button class="ham" onclick="toggleSidebar()">☰</button><div><div class="page-title">🏆 LEADERBOARD</div><div class="page-sub">Top players by profit</div></div></div></div>
+    <div class="topbar-right"><button class="btn btn-sm btn-ghost" onclick="loadLeaderboard()">↻ Refresh</button></div>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Player</th><th>Wins</th><th>Losses</th><th>Win Rate</th><th>Wagered</th><th>Best Win</th><th>Net Profit</th></tr></thead>
+        <tbody id="lbBody"><tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text2)">Connect Firebase to load leaderboard</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SETTINGS ════════ -->
+<div class="page" id="page-settings">
+  <div class="topbar">
+    <div><div style="display:flex;align-items:center;gap:10px"><button class="ham" onclick="toggleSidebar()">☰</button><div><div class="page-title">⚙️ SETTINGS</div><div class="page-sub">Admin configuration</div></div></div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-title">🔥 Firebase Connection</div>
+      <div class="fb-grid">
+        <div class="fg"><label class="fl">API Key</label><input class="fi" id="sApiKey" placeholder="AIzaSy…"></div>
+        <div class="fg"><label class="fl">Auth Domain</label><input class="fi" id="sAuthDomain" placeholder="project.firebaseapp.com"></div>
+        <div class="fg"><label class="fl">Database URL</label><input class="fi" id="sDbUrl" placeholder="https://project-rtdb.firebaseio.com"></div>
+        <div class="fg"><label class="fl">Project ID</label><input class="fi" id="sProjectId" placeholder="project-id"></div>
+        <div class="fg"><label class="fl">Storage Bucket</label><input class="fi" id="sStorageBucket" placeholder="project.appspot.com"></div>
+        <div class="fg"><label class="fl">Messaging Sender ID</label><input class="fi" id="sMsgSenderId" placeholder="1234567890"></div>
+        <div class="fg"><label class="fl">App ID</label><input class="fi" id="sAppId" placeholder="1:123:web:abc…"></div>
+        <div class="fg"><label class="fl">bKash Merchant Number</label><input class="fi" id="sMerch" placeholder="01XXXXXXXXX"></div>
+      </div>
+      <button class="btn btn-md btn-firebase" style="width:100%;margin-top:4px" onclick="saveSettings()">🔥 SAVE & RECONNECT</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🔐 Admin Password</div>
+      <div class="fg"><label class="fl">Current Password</label><input class="fi" type="password" id="sPwOld" placeholder="••••••••"></div>
+      <div class="fg"><label class="fl">New Password</label><input class="fi" type="password" id="sPwNew" placeholder="••••••••"></div>
+      <div class="fg"><label class="fl">Confirm New</label><input class="fi" type="password" id="sPwNew2" placeholder="••••••••"></div>
+      <div class="emsg" id="sPwE"></div>
+      <button class="btn btn-md btn-gold" style="width:100%;margin-top:4px" onclick="changeAdminPw()">UPDATE PASSWORD</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🎮 Game Limits</div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Min Bet (৳)</label><input class="fi" id="sMinBet" type="number" value="10"></div>
+        <div class="fg"><label class="fl">Max Bet (৳)</label><input class="fi" id="sMaxBet" type="number" value="1000"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Min Deposit (৳)</label><input class="fi" id="sMinDep" type="number" value="100"></div>
+        <div class="fg"><label class="fl">Min Withdraw (৳)</label><input class="fi" id="sMinWd" type="number" value="200"></div>
+      </div>
+      <div class="fg"><label class="fl">New User Bonus (৳)</label><input class="fi" id="sBonus" type="number" value="500"></div>
+      <button class="btn btn-md btn-ghost" style="width:100%;margin-top:4px" onclick="saveGameSettings()">SAVE LIMITS</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Quick Stats</div>
+      <div class="slist" id="settingsStats">
+        <div class="srow"><span class="srl">Firebase Status</span><span class="srv mono" id="apiStatus" style="font-size:.72rem;color:var(--text2)">Not connected</span></div>
+        <div class="srow"><span class="srl">bKash Number</span><span class="srv mono" id="merchStatus" style="font-size:.75rem">—</span></div>
+        <div class="srow"><span class="srl">Total Users</span><span class="srv" id="sTotalUsers" style="color:var(--accent)">—</span></div>
+        <div class="srow"><span class="srl">Pending Actions</span><span class="srv" id="sPendingCount" style="color:var(--gold)">—</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="tw"></div>
+
+<!-- FIREBASE SETUP MODAL -->
+<div class="overlay" id="setupOv">
+  <div class="modal" style="width:520px">
+    <div class="mhead"><div class="mtitle">🔥 Connect Firebase</div><button class="btnx" onclick="cm('setupOv')">✕</button></div>
+    <div class="mbody">
+      <div class="setup-step"><span class="step-num">1</span><strong>Go to</strong> <a href="https://console.firebase.google.com" target="_blank" style="color:#ff9100">console.firebase.google.com</a> → your project → <strong>Project Settings ⚙️</strong> → scroll to <strong>Your apps</strong> → copy the config values below.</div>
+      <div class="setup-step"><span class="step-num">2</span>Make sure <strong>Realtime Database</strong> and <strong>Email/Password Authentication</strong> are enabled in your Firebase project (same setup as the main MINES BD app).</div>
+      <div class="setup-step"><span class="step-num">3</span>This admin panel reads all data using <code>admin</code> read access via the SDK. It never writes to Firebase Auth directly — password resets use Firebase <strong>Admin SDK</strong> via a Cloud Function, or you can manage auth from the Firebase console.</div>
+
+      <div class="divider"></div>
+      <div class="fb-grid">
+        <div class="fg"><label class="fl">API Key</label><input class="fi" id="fbApiKey" placeholder="AIzaSy…"></div>
+        <div class="fg"><label class="fl">Auth Domain</label><input class="fi" id="fbAuthDomain" placeholder="project.firebaseapp.com"></div>
+        <div class="fg"><label class="fl">Database URL</label><input class="fi" id="fbDbUrl" placeholder="https://project-rtdb.firebaseio.com"></div>
+        <div class="fg"><label class="fl">Project ID</label><input class="fi" id="fbProjectId" placeholder="project-id"></div>
+        <div class="fg"><label class="fl">Storage Bucket</label><input class="fi" id="fbStorageBucket" placeholder="project.appspot.com"></div>
+        <div class="fg"><label class="fl">Messaging Sender ID</label><input class="fi" id="fbMsgSenderId" placeholder="1234567890"></div>
+        <div class="fg"><label class="fl">App ID</label><input class="fi" id="fbAppId" placeholder="1:123:web:abc…"></div>
+        <div class="fg"><label class="fl">bKash Merchant Number</label><input class="fi" id="fbMerch" placeholder="01XXXXXXXXX" value="01700-000000"></div>
+      </div>
+      <div class="divider"></div>
+      <div style="background:rgba(255,59,92,.06);border:1px solid rgba(255,59,92,.2);border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:.82rem;color:#ff8aaa;line-height:1.6">
+        🔐 <strong style="color:#fff">Admin Firebase Login</strong> — Firebase Rules-এর জন্য admin account দিয়ে sign in করতে হবে। এটা সেই email যেটা Firebase-এ <code>admins/</code> node-এ আছে।
+      </div>
+      <div class="fb-grid">
+        <div class="fg"><label class="fl">Admin Email</label><input class="fi" id="fbAdminEmail" type="email" placeholder="admin@example.com"></div>
+        <div class="fg"><label class="fl">Admin Password</label><input class="fi" id="fbAdminPass" type="password" placeholder="••••••••"></div>
+      </div>
+      <div class="emsg" id="setupE"></div>
+      <button class="btn btn-lg btn-firebase" onclick="saveSetup()">🔥 CONNECT & LOAD DATA</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT USER MODAL -->
+<div class="overlay" id="editUserOv">
+  <div class="modal">
+    <div class="mhead"><div class="mtitle" id="editUserTitle">Edit User</div><button class="btnx" onclick="cm('editUserOv')">✕</button></div>
+    <div class="mbody">
+      <div class="prof-hero-admin" id="editUserHero"></div>
+      <div style="padding-top:16px">
+        <div class="frow">
+          <div class="fg"><label class="fl">Balance (৳)</label><input class="fi" id="euBal" type="number" min="0"></div>
+          <div class="fg"><label class="fl">Pending Balance (৳)</label><input class="fi" id="euPend" type="number" min="0"></div>
+        </div>
+        <div class="frow">
+          <div class="fg"><label class="fl">Total Bets</label><input class="fi" id="euBets" type="number" min="0"></div>
+          <div class="fg"><label class="fl">Wins</label><input class="fi" id="euWins" type="number" min="0"></div>
+        </div>
+        <div class="frow">
+          <div class="fg"><label class="fl">Losses</label><input class="fi" id="euLoss" type="number" min="0"></div>
+          <div class="fg"><label class="fl">Best Win (৳)</label><input class="fi" id="euBest" type="number" min="0"></div>
+        </div>
+        <div class="fg"><label class="fl">Add / Subtract Balance</label>
+          <div style="display:flex;gap:8px">
+            <input class="fi" id="euAddAmt" type="number" placeholder="e.g. 500 to add, -200 to subtract" style="flex:1">
+            <button class="btn btn-md btn-gold" onclick="adjustBalance()">APPLY</button>
+          </div>
+          <div style="font-size:.72rem;color:var(--text2);margin-top:3px">Positive = add funds, negative = subtract</div>
+        </div>
+        <div class="divider"></div>
+        <div class="fg"><label class="fl">Ban / Unban User</label>
+          <div style="display:flex;gap:8px">
+            <span id="euBanStatus" style="flex:1;font-size:.84rem;color:var(--text2);display:flex;align-items:center"></span>
+            <button class="btn btn-md btn-danger" id="euBanBtn" onclick="toggleBanUser()">BAN USER</button>
+          </div>
+        </div>
+        <div class="emsg" id="euE"></div>
+        <button class="btn btn-lg btn-accent" onclick="saveEditUser()" style="margin-top:8px">SAVE CHANGES</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="overlay" id="addUserOv">
+  <div class="modal" style="width:420px">
+    <div class="mhead"><div class="mtitle">➕ Add User</div><button class="btnx" onclick="cm('addUserOv')">✕</button></div>
+    <div class="mbody">
+      <div class="frow">
+        <div class="fg"><label class="fl">Username</label><input class="fi" id="auUser" placeholder="username"></div>
+        <div class="fg"><label class="fl">bKash Phone</label><input class="fi" id="auPhone" placeholder="01XXXXXXXXX"></div>
+      </div>
+      <div class="fg"><label class="fl">Email (required)</label><input class="fi" id="auEmail" type="email" placeholder="user@email.com"></div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Password</label><input class="fi" type="password" id="auPass" placeholder="••••••••"></div>
+        <div class="fg"><label class="fl">Starting Balance (৳)</label><input class="fi" id="auBal" type="number" value="500" min="0"></div>
+      </div>
+      <div class="emsg" id="auE"></div>
+      <button class="btn btn-lg btn-accent" onclick="doAddUser()" style="margin-top:4px">CREATE ACCOUNT</button>
+    </div>
+  </div>
+</div>
+
+<!-- TX DETAIL MODAL -->
+<div class="overlay" id="txDetailOv">
+  <div class="modal" style="width:420px">
+    <div class="mhead"><div class="mtitle" id="txDetailTitle">Transaction Detail</div><button class="btnx" onclick="cm('txDetailOv')">✕</button></div>
+    <div class="mbody" id="txDetailBody"></div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="confirmOv">
+  <div class="confirm-box">
+    <div class="confirm-ico" id="confirmIco">⚠️</div>
+    <div class="confirm-t" id="confirmTitle">Are you sure?</div>
+    <div class="confirm-s" id="confirmSub">This action cannot be undone.</div>
+    <div class="confirm-btns">
+      <button class="btn btn-md btn-ghost" onclick="cm('confirmOv')">Cancel</button>
+      <button class="btn btn-md btn-danger" id="confirmBtn" onclick="runConfirm()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- USER PROFILE VIEW MODAL -->
+<div class="overlay" id="viewUserOv">
+  <div class="modal">
+    <div class="mhead"><div class="mtitle" id="vuTitle">User Profile</div><button class="btnx" onclick="cm('viewUserOv')">✕</button></div>
+    <div class="mbody" id="vuBody"></div>
+  </div>
+</div>
+
+<script type="module">
+/* ═══════════════════════════════════════════
+   FIREBASE SDK
+═══════════════════════════════════════════ */
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {
+  getDatabase, ref, get, set, update, remove, push, query, orderByChild
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+let CFG = JSON.parse(localStorage.getItem('mbd_admin_fb_cfg') || 'null') || {
+  merch: '01700-000000',
+  adminPw: localStorage.getItem('mbd_admin_pw') || 'admin123'
+};
+
+let FB_APP = null, FB_AUTH = null, FB_DB = null;
+let DATA = { users: [], transactions: [], games: [], leaderboard: [] };
+let CUR_USER = null;
+let confirmCb = null;
+let pages = { users: 1, deps: 1, wds: 1, tx: 1, games: 1 };
+const PER = 20;
+
+function isReady() { return !!(FB_DB); }
+
+/* ═══════════════════════════════════════════
+   INIT FIREBASE
+═══════════════════════════════════════════ */
+function initFirebase(cfg) {
+  try {
+    if (getApps().length === 0) {
+      FB_APP = initializeApp({
+        apiKey: cfg.apiKey,
+        authDomain: cfg.authDomain,
+        databaseURL: cfg.databaseURL,
+        projectId: cfg.projectId,
+        storageBucket: cfg.storageBucket,
+        messagingSenderId: cfg.messagingSenderId,
+        appId: cfg.appId
+      });
+    } else {
+      FB_APP = getApps()[0];
+    }
+    FB_AUTH = getAuth(FB_APP);
+    FB_DB = getDatabase(FB_APP);
+    return true;
+  } catch(e) {
+    toast('Firebase init error: ' + e.message, 'tl');
+    return false;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  if (CFG && CFG.apiKey) {
+    initFirebase(CFG);
+    updateSetupBanner();
+    populateSettingsFields();
+    // Auto sign-in admin if credentials saved
+    if (CFG.adminEmail && CFG.adminPassword) {
+      try {
+        await signInWithEmailAndPassword(FB_AUTH, CFG.adminEmail, CFG.adminPassword);
+      } catch(e) { /* already signed in or wrong credentials */ }
+    }
+    await refreshAll();
+  }
+});
+
+/* ═══════════════════════════════════════════
+   SETUP / SAVE CONFIG
+═══════════════════════════════════════════ */
+window.openSetup = function() {
+  if (CFG) {
+    document.getElementById('fbApiKey').value = CFG.apiKey || '';
+    document.getElementById('fbAuthDomain').value = CFG.authDomain || '';
+    document.getElementById('fbDbUrl').value = CFG.databaseURL || '';
+    document.getElementById('fbProjectId').value = CFG.projectId || '';
+    document.getElementById('fbStorageBucket').value = CFG.storageBucket || '';
+    document.getElementById('fbMsgSenderId').value = CFG.messagingSenderId || '';
+    document.getElementById('fbAppId').value = CFG.appId || '';
+    document.getElementById('fbMerch').value = CFG.merch || '01700-000000';
+    document.getElementById('fbAdminEmail').value = CFG.adminEmail || '';
+    document.getElementById('fbAdminPass').value = CFG.adminPassword || '';
+  }
+  document.getElementById('setupE').className = 'emsg';
+  document.getElementById('setupOv').classList.add('open');
+};
+
+window.saveSetup = async function() {
+  const apiKey = document.getElementById('fbApiKey').value.trim();
+  const authDomain = document.getElementById('fbAuthDomain').value.trim();
+  const databaseURL = document.getElementById('fbDbUrl').value.trim();
+  const projectId = document.getElementById('fbProjectId').value.trim();
+  const storageBucket = document.getElementById('fbStorageBucket').value.trim();
+  const messagingSenderId = document.getElementById('fbMsgSenderId').value.trim();
+  const appId = document.getElementById('fbAppId').value.trim();
+  const merch = document.getElementById('fbMerch').value.trim() || '01700-000000';
+  const adminEmail = document.getElementById('fbAdminEmail').value.trim();
+  const adminPassword = document.getElementById('fbAdminPass').value;
+  const e = document.getElementById('setupE');
+  if (!apiKey || !authDomain || !databaseURL || !projectId) {
+    e.textContent = 'Fill in at least: API Key, Auth Domain, Database URL, Project ID';
+    e.className = 'emsg show'; return;
+  }
+  if (!databaseURL.startsWith('https://')) {
+    e.textContent = 'Database URL must start with https://';
+    e.className = 'emsg show'; return;
+  }
+  if (!adminEmail || !adminPassword) {
+    e.textContent = 'Admin Email এবং Password দিন';
+    e.className = 'emsg show'; return;
+  }
+  const newCfg = { apiKey, authDomain, databaseURL, projectId, storageBucket, messagingSenderId, appId, merch, adminEmail, adminPassword, adminPw: CFG.adminPw || 'admin123' };
+  CFG = newCfg;
+  localStorage.setItem('mbd_admin_fb_cfg', JSON.stringify(CFG));
+  const ok = initFirebase(CFG);
+  if (!ok) return;
+  // Sign in to Firebase with admin credentials
+  try {
+    await signInWithEmailAndPassword(FB_AUTH, adminEmail, adminPassword);
+  } catch(err) {
+    e.textContent = 'Firebase login failed: ' + (err.code === 'auth/invalid-credential' ? 'Wrong email or password' : err.message);
+    e.className = 'emsg show'; return;
+  }
+  cm('setupOv');
+  updateSetupBanner();
+  populateSettingsFields();
+  toast('🔥 Firebase connected! Loading data…', 'tw');
+  await refreshAll();
+};
+
+window.saveSettings = async function() {
+  const apiKey = document.getElementById('sApiKey').value.trim();
+  const authDomain = document.getElementById('sAuthDomain').value.trim();
+  const databaseURL = document.getElementById('sDbUrl').value.trim();
+  const projectId = document.getElementById('sProjectId').value.trim();
+  const storageBucket = document.getElementById('sStorageBucket').value.trim();
+  const messagingSenderId = document.getElementById('sMsgSenderId').value.trim();
+  const appId = document.getElementById('sAppId').value.trim();
+  const merch = document.getElementById('sMerch').value.trim() || CFG.merch;
+  if (!apiKey || !databaseURL) { toast('Fill in API Key and Database URL at minimum', 'ti'); return; }
+  CFG = { ...CFG, apiKey, authDomain, databaseURL, projectId, storageBucket, messagingSenderId, appId, merch };
+  localStorage.setItem('mbd_admin_fb_cfg', JSON.stringify(CFG));
+  initFirebase(CFG);
+  updateSetupBanner();
+  updateSettingsStats();
+  toast('Settings saved & Firebase reconnected ✅', 'tw');
+};
+
+function updateSetupBanner() {
+  const b = document.getElementById('setupBanner');
+  if (CFG && CFG.apiKey) {
+    b.className = 'setup-banner connected';
+    b.onclick = null;
+    b.innerHTML = `<div class="sb-ico">🔥</div><div class="sb-txt"><div class="sb-t">Connected to Firebase</div><div class="sb-s">Project: ${CFG.projectId || '—'}</div></div><button class="btn btn-sm btn-ghost" onclick="openSetup()">Edit</button>`;
+  }
+}
+
+function populateSettingsFields() {
+  if (!CFG) return;
+  document.getElementById('sApiKey').value = CFG.apiKey || '';
+  document.getElementById('sAuthDomain').value = CFG.authDomain || '';
+  document.getElementById('sDbUrl').value = CFG.databaseURL || '';
+  document.getElementById('sProjectId').value = CFG.projectId || '';
+  document.getElementById('sStorageBucket').value = CFG.storageBucket || '';
+  document.getElementById('sMsgSenderId').value = CFG.messagingSenderId || '';
+  document.getElementById('sAppId').value = CFG.appId || '';
+  document.getElementById('sMerch').value = CFG.merch || '';
+}
+
+/* ═══════════════════════════════════════════
+   DATA LOADING — FIREBASE
+═══════════════════════════════════════════ */
+window.refreshAll = async function() {
+  if (!isReady()) { toast('Connect Firebase first 🔥', 'ti'); return; }
+  toast('Loading data…', 'ti');
+  await Promise.all([loadUsers(), loadTransactions(), loadLeaderboard()]);
+  renderDashboard();
+  updateNavBadges();
+  updateSettingsStats();
+  toast('Data refreshed ✅', 'tw');
+};
+
+window.loadUsers = async function() {
+  if (!isReady()) return;
+  const snap = await get(ref(FB_DB, 'users'));
+  DATA.users = [];
+  if (snap.exists()) {
+    snap.forEach(child => {
+      DATA.users.push({ _uid: child.key, ...child.val() });
+    });
+  }
+  renderUsersTable();
+  document.getElementById('userCountLbl').textContent = `${DATA.users.length} total accounts`;
+  document.getElementById('nbUsers').textContent = DATA.users.length;
+};
+
+window.loadTransactions = async function() {
+  if (!isReady()) return;
+  // Read all user transactions from transactions/{uid}/*
+  const snap = await get(ref(FB_DB, 'transactions'));
+  DATA.transactions = [];
+  if (snap.exists()) {
+    snap.forEach(userNode => {
+      const uid = userNode.key;
+      // find username for this uid
+      const userObj = DATA.users.find(u => u._uid === uid);
+      const username = userObj ? userObj.username : uid;
+      userNode.forEach(txNode => {
+        DATA.transactions.push({
+          id: txNode.key,
+          _uid: uid,
+          username,
+          ...txNode.val()
+        });
+      });
+    });
+  }
+  // Sort newest first
+  DATA.transactions.sort((a, b) => new Date(b.time || 0) - new Date(a.time || 0));
+  renderDeposits();
+  renderWithdrawals();
+  renderTransactions();
+  updateNavBadges();
+};
+
+window.loadGames = async function() {
+  if (!isReady()) { toast('Connect Firebase first', 'ti'); return; }
+  const snap = await get(ref(FB_DB, 'games'));
+  DATA.games = [];
+  if (snap.exists()) {
+    snap.forEach(userNode => {
+      const uid = userNode.key;
+      const userObj = DATA.users.find(u => u._uid === uid);
+      const username = userObj ? userObj.username : uid;
+      userNode.forEach(gameNode => {
+        DATA.games.push({ id: gameNode.key, _uid: uid, username, ...gameNode.val() });
+      });
+    });
+  }
+  DATA.games.sort((a, b) => new Date(b.time || 0) - new Date(a.time || 0));
+  renderGames();
+};
+
+window.loadLeaderboard = async function() {
+  if (!isReady()) return;
+  const snap = await get(ref(FB_DB, 'leaderboard'));
+  DATA.leaderboard = [];
+  if (snap.exists()) {
+    snap.forEach(child => DATA.leaderboard.push({ _uid: child.key, ...child.val() }));
+  }
+  DATA.leaderboard.sort((a, b) => (b.profit || 0) - (a.profit || 0));
+  renderLeaderboard();
+};
+
+/* ═══════════════════════════════════════════
+   RENDER — DASHBOARD
+═══════════════════════════════════════════ */
+function renderDashboard() {
+  document.getElementById('st-users').textContent = DATA.users.length;
+  const totalBal = DATA.users.reduce((a, u) => a + (parseFloat(u.balance) || 0), 0);
+  document.getElementById('st-bal').textContent = '৳' + fmt(totalBal);
+  const pendDeps = DATA.transactions.filter(t => t.type === 'deposit' && t.status === 'pending');
+  const pendWds = DATA.transactions.filter(t => t.type === 'withdrawal' && t.status === 'pending');
+  document.getElementById('st-pend').textContent = pendDeps.length;
+  const totalGames = DATA.games.length || DATA.users.reduce((a, u) => a + (parseInt(u.bets) || 0), 0);
+  document.getElementById('st-games').textContent = totalGames;
+
+  document.getElementById('pendDepBadge').textContent = pendDeps.length;
+  const dd = document.getElementById('dashPendDep');
+  dd.innerHTML = pendDeps.length ? pendDeps.slice(0, 5).map(t => txMiniRow(t, 'dep')).join('') :
+    '<div class="empty-state"><div class="empty-ico">📭</div><div class="empty-t">No pending deposits</div></div>';
+
+  document.getElementById('pendWdBadge').textContent = pendWds.length;
+  const dw = document.getElementById('dashPendWd');
+  dw.innerHTML = pendWds.length ? pendWds.slice(0, 5).map(t => txMiniRow(t, 'wd')).join('') :
+    '<div class="empty-state"><div class="empty-ico">📭</div><div class="empty-t">No pending withdrawals</div></div>';
+
+  const sorted = [...DATA.users].sort((a, b) => new Date(b.joined || 0) - new Date(a.joined || 0));
+  const tb = document.getElementById('dashNewUsers');
+  if (!sorted.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2)">No users found</td></tr>'; return; }
+  tb.innerHTML = sorted.slice(0, 8).map(u => `
+    <tr>
+      <td><div class="user-cell"><div class="uav">${u.username[0].toUpperCase()}</div><div><div class="uname">${u.username}</div><div class="usub">${u.email || ''}</div></div></div></td>
+      <td class="mono" style="color:var(--text2)">${u.phone || '—'}</td>
+      <td style="color:var(--gold);font-family:var(--fh);font-size:1.05rem">৳${fmt(u.balance || 0)}</td>
+      <td style="color:var(--text2);font-size:.79rem">${fmtDate(u.joined)}</td>
+      <td><div class="tx-actions"><button class="action-btn edit" onclick="openEditUser('${u._uid}')">Edit</button><button class="action-btn approve" onclick="viewUser('${u._uid}')">View</button></div></td>
+    </tr>`).join('');
+}
+
+function txMiniRow(t, type) {
+  return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--s2);border-radius:8px;border:1px solid var(--border);margin-bottom:6px">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="font-size:.85rem">${type === 'dep' ? '📥' : '📤'}</div>
+      <div><div style="font-weight:700;font-size:.85rem">${t.username || '?'}</div><div class="mono" style="font-size:.7rem;color:var(--text2)">${t.trxId || t.bkPhone || t.id || ''}</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:7px">
+      <span style="font-family:var(--fh);font-size:1rem;color:${type === 'dep' ? 'var(--accent)' : 'var(--danger)'}">৳${fmt(t.amount)}</span>
+      <button class="action-btn approve" onclick="approveTransaction('${t.id}','${t._uid}','${t.username}',${t.amount},'${t.type}')">✓</button>
+      <button class="action-btn reject" onclick="rejectTransaction('${t.id}','${t._uid}','${t.username}',${t.amount},'${t.type}')">✗</button>
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════
+   RENDER — USERS
+═══════════════════════════════════════════ */
+function renderUsersTable(filtered) {
+  const list = filtered !== undefined ? filtered : DATA.users;
+  const tb = document.getElementById('usersBody');
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:28px;color:var(--text2)">No users found</td></tr>'; return; }
+  const start = (pages.users - 1) * PER, end = start + PER;
+  tb.innerHTML = list.slice(start, end).map(u => {
+    const wr = u.bets > 0 ? ((u.wins / u.bets) * 100).toFixed(0) + '%' : '—';
+    const profit = parseFloat(u.profit) || 0;
+    return `<tr>
+      <td><div class="user-cell"><div class="uav ${u.banned ? 'red' : ''}">${u.username[0].toUpperCase()}</div><div><div class="uname">${u.username}</div><div class="usub">${u.email || ''}</div></div></div></td>
+      <td class="mono" style="color:var(--text2);font-size:.78rem">${u.phone || '—'}</td>
+      <td style="color:var(--gold);font-family:var(--fh);font-size:1.05rem">৳${fmt(u.balance || 0)}</td>
+      <td style="color:var(--bkash);font-family:var(--fh);font-size:.95rem">৳${fmt(u.pendingBal || 0)}</td>
+      <td>${u.bets || 0}</td>
+      <td><span style="color:var(--accent)">${u.wins || 0}</span> / <span style="color:var(--danger)">${u.losses || 0}</span></td>
+      <td style="color:${profit >= 0 ? 'var(--accent)' : 'var(--danger)'}">৳${fmt(profit)}</td>
+      <td style="color:var(--text2);font-size:.78rem">${fmtDate(u.joined)}</td>
+      <td><span class="badge ${u.banned ? 'badge-red' : 'badge-green'}">${u.banned ? 'Banned' : 'Active'}</span></td>
+      <td><div class="tx-actions">
+        <button class="action-btn edit" onclick="openEditUser('${u._uid}')">Edit</button>
+        <button class="action-btn approve" onclick="viewUser('${u._uid}')">View</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  renderPagination('user', list.length, pages.users);
+}
+
+window.filterUsers = function() {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  const sort = document.getElementById('userSort').value;
+  let list = DATA.users.filter(u =>
+    (u.username || '').toLowerCase().includes(q) ||
+    (u.phone || '').includes(q) ||
+    (u.email || '').toLowerCase().includes(q)
+  );
+  if (sort === 'balance_desc') list.sort((a, b) => (b.balance || 0) - (a.balance || 0));
+  else if (sort === 'bets_desc') list.sort((a, b) => (b.bets || 0) - (a.bets || 0));
+  else if (sort === 'profit_desc') list.sort((a, b) => (b.profit || 0) - (a.profit || 0));
+  else if (sort === 'joined_asc') list.sort((a, b) => new Date(a.joined || 0) - new Date(b.joined || 0));
+  else list.sort((a, b) => new Date(b.joined || 0) - new Date(a.joined || 0));
+  pages.users = 1;
+  renderUsersTable(list);
+};
+
+/* ═══════════════════════════════════════════
+   RENDER — DEPOSITS
+═══════════════════════════════════════════ */
+function renderDeposits(filtered) {
+  const deps = filtered !== undefined ? filtered : DATA.transactions.filter(t => t.type === 'deposit');
+  const tb = document.getElementById('depsBody');
+  if (!deps.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text2)">No deposit records found</td></tr>'; renderPagination('dep', 0, 1); return; }
+  const start = (pages.deps - 1) * PER, end = start + PER;
+  tb.innerHTML = deps.slice(start, end).map(t => `
+    <tr>
+      <td class="mono" style="font-size:.76rem;color:var(--accent)">${t.trxId || t.id || '—'}</td>
+      <td><div class="user-cell"><div class="uav" style="width:24px;height:24px;font-size:.72rem">${(t.username||'?')[0].toUpperCase()}</div><span class="uname">${t.username || '—'}</span></div></td>
+      <td style="color:var(--gold);font-family:var(--fh);font-size:1rem">৳${fmt(t.amount)}</td>
+      <td class="mono" style="font-size:.77rem;color:var(--text2)">${t.bkPhone || '—'}</td>
+      <td style="color:var(--text2);font-size:.78rem">${fmtDate(t.time)}</td>
+      <td><span class="badge ${statusBadge(t.status)}">${t.status || 'pending'}</span></td>
+      <td><div class="tx-actions">
+        ${t.status === 'pending'
+          ? `<button class="action-btn approve" onclick="approveTransaction('${t.id}','${t._uid}','${t.username}',${t.amount},'deposit')">✓ Approve</button><button class="action-btn reject" onclick="rejectTransaction('${t.id}','${t._uid}','${t.username}',${t.amount},'deposit')">✗ Reject</button>`
+          : `<button class="action-btn edit" onclick="viewTxDetail('${t.id}')">View</button>`}
+      </div></td>
+    </tr>`).join('');
+  renderPagination('dep', deps.length, pages.deps);
+}
+
+window.filterDeposits = function() {
+  const q = document.getElementById('depSearch').value.toLowerCase();
+  const f = document.getElementById('depFilter').value;
+  const list = DATA.transactions.filter(t => t.type === 'deposit' &&
+    (f === 'all' || t.status === f) &&
+    ((t.username || '').toLowerCase().includes(q) || (t.trxId || '').toLowerCase().includes(q))
+  );
+  pages.deps = 1; renderDeposits(list);
+};
+
+/* ═══════════════════════════════════════════
+   RENDER — WITHDRAWALS
+═══════════════════════════════════════════ */
+function renderWithdrawals(filtered) {
+  const wds = filtered !== undefined ? filtered : DATA.transactions.filter(t => t.type === 'withdrawal');
+  const tb = document.getElementById('wdsBody');
+  if (!wds.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text2)">No withdrawal records found</td></tr>'; renderPagination('wd', 0, 1); return; }
+  const start = (pages.wds - 1) * PER, end = start + PER;
+  tb.innerHTML = wds.slice(start, end).map(t => `
+    <tr>
+      <td class="mono" style="font-size:.76rem;color:var(--text2)">${t.id || '—'}</td>
+      <td><div class="user-cell"><div class="uav" style="width:24px;height:24px;font-size:.72rem">${(t.username||'?')[0].toUpperCase()}</div><span class="uname">${t.username || '—'}</span></div></td>
+      <td style="color:var(--danger);font-family:var(--fh);font-size:1rem">৳${fmt(t.amount)}</td>
+      <td class="mono" style="font-size:.77rem;color:var(--text2)">${t.bkPhone || '—'}</td>
+      <td style="color:var(--text2);font-size:.78rem">${fmtDate(t.time)}</td>
+      <td><span class="badge ${statusBadge(t.status)}">${t.status || 'pending'}</span></td>
+      <td><div class="tx-actions">
+        ${t.status === 'pending'
+          ? `<button class="action-btn approve" onclick="approveTransaction('${t.id}','${t._uid}','${t.username}',${t.amount},'withdrawal')">✓ Complete</button><button class="action-btn reject" onclick="rejectTransaction('${t.id}','${t._uid}','${t.username}',${t.amount},'withdrawal')">✗ Reject</button>`
+          : `<button class="action-btn edit" onclick="viewTxDetail('${t.id}')">View</button>`}
+      </div></td>
+    </tr>`).join('');
+  renderPagination('wd', wds.length, pages.wds);
+}
+
+window.filterWithdrawals = function() {
+  const q = document.getElementById('wdSearch').value.toLowerCase();
+  const f = document.getElementById('wdFilter').value;
+  const list = DATA.transactions.filter(t => t.type === 'withdrawal' &&
+    (f === 'all' || t.status === f) &&
+    ((t.username || '').toLowerCase().includes(q) || (t.bkPhone || '').includes(q))
+  );
+  pages.wds = 1; renderWithdrawals(list);
+};
+
+/* ═══════════════════════════════════════════
+   RENDER — ALL TRANSACTIONS
+═══════════════════════════════════════════ */
+function renderTransactions(filtered) {
+  const list = filtered !== undefined ? filtered : DATA.transactions;
+  const tb = document.getElementById('txBody');
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text2)">No transactions</td></tr>'; renderPagination('tx', 0, 1); return; }
+  const start = (pages.tx - 1) * PER, end = start + PER;
+  const txIcons = { deposit: '📥', withdrawal: '📤', win: '🏆', loss: '💸', cashout: '💰' };
+  tb.innerHTML = list.slice(start, end).map(t => `
+    <tr>
+      <td class="mono" style="font-size:.74rem;color:var(--text2)">${t.id || '—'}</td>
+      <td><div class="user-cell"><div class="uav" style="width:22px;height:22px;font-size:.7rem">${(t.username||'?')[0].toUpperCase()}</div><span style="font-weight:700;font-size:.85rem">${t.username || '—'}</span></div></td>
+      <td><span style="font-size:.95rem">${txIcons[t.type] || '📄'}</span> <span style="font-weight:700;font-size:.83rem">${cap(t.type || '')}</span></td>
+      <td style="font-family:var(--fh);font-size:1rem;color:${['deposit','win','cashout'].includes(t.type) ? 'var(--accent)' : 'var(--danger)'}">৳${fmt(t.amount)}</td>
+      <td style="color:var(--text2);font-size:.78rem">${t.note || '—'}</td>
+      <td><span class="badge ${statusBadge(t.status)}">${t.status || '—'}</span></td>
+      <td style="color:var(--text2);font-size:.77rem">${fmtDate(t.time)}</td>
+    </tr>`).join('');
+  renderPagination('tx', list.length, pages.tx);
+}
+
+window.filterTx = function() {
+  const q = document.getElementById('txSearch').value.toLowerCase();
+  const f = document.getElementById('txTypeFilter').value;
+  const list = DATA.transactions.filter(t =>
+    (f === 'all' || t.type === f) &&
+    ((t.username || '').toLowerCase().includes(q) || (t.type || '').includes(q))
+  );
+  pages.tx = 1; renderTransactions(list);
+};
+
+/* ═══════════════════════════════════════════
+   RENDER — GAMES
+═══════════════════════════════════════════ */
+function renderGames(filtered) {
+  const list = filtered !== undefined ? filtered : DATA.games;
+  const tb = document.getElementById('gamesBody');
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--text2)">No game records</td></tr>'; return; }
+  const start = (pages.games - 1) * PER, end = start + PER;
+  tb.innerHTML = list.slice(start, end).map(g => `
+    <tr>
+      <td class="mono" style="font-size:.73rem;color:var(--text2)">${g.id || '—'}</td>
+      <td style="font-weight:700">${g.username || '—'}</td>
+      <td style="font-family:var(--fh)">৳${fmt(g.bet)}</td>
+      <td><span style="color:var(--danger)">💣 ${g.mines}</span></td>
+      <td><span style="color:var(--accent)">💎 ${g.gems}</span></td>
+      <td style="font-family:var(--fh);color:var(--blue)">${parseFloat(g.multi || 0).toFixed(2)}×</td>
+      <td style="font-family:var(--fh);color:${g.result === 'win' ? 'var(--accent)' : 'var(--danger)'}">৳${fmt(g.payout)}</td>
+      <td><span class="badge ${g.result === 'win' ? 'badge-green' : 'badge-red'}">${g.result === 'win' ? '✓ WIN' : '✗ LOSS'}</span></td>
+      <td style="color:var(--text2);font-size:.77rem">${fmtDate(g.time)}</td>
+    </tr>`).join('');
+  renderPagination('game', list.length, pages.games);
+}
+
+window.filterGames = function() {
+  const q = document.getElementById('gameSearch').value.toLowerCase();
+  const f = document.getElementById('gameResult').value;
+  const list = DATA.games.filter(g =>
+    (f === 'all' || g.result === f) &&
+    (g.username || '').toLowerCase().includes(q)
+  );
+  pages.games = 1; renderGames(list);
+};
+
+/* ═══════════════════════════════════════════
+   RENDER — LEADERBOARD
+═══════════════════════════════════════════ */
+function renderLeaderboard() {
+  const list = DATA.leaderboard;
+  const tb = document.getElementById('lbBody');
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--text2)">No data</td></tr>'; return; }
+  const medals = ['🥇', '🥈', '🥉'];
+  tb.innerHTML = list.slice(0, 50).map((u, i) => {
+    const wr = u.bets > 0 ? ((u.wins / u.bets) * 100).toFixed(1) + '%' : '—';
+    const profit = parseFloat(u.profit) || 0;
+    return `<tr>
+      <td style="font-family:var(--fh);font-size:1.1rem;color:${i === 0 ? 'var(--gold)' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : 'var(--text2)'}">${i < 3 ? medals[i] : '#' + (i + 1)}</td>
+      <td><div class="user-cell"><div class="uav">${u.username[0].toUpperCase()}</div><span class="uname">${u.username}</span></div></td>
+      <td style="color:var(--accent);font-family:var(--fh)">${u.wins || 0}</td>
+      <td style="color:var(--danger);font-family:var(--fh)">${u.losses || 0}</td>
+      <td style="color:var(--blue)">${wr}</td>
+      <td style="color:var(--text2);font-family:var(--fh)">৳${fmt(u.wagered || 0)}</td>
+      <td style="color:var(--gold);font-family:var(--fh)">৳${fmt(u.bestWin || 0)}</td>
+      <td style="color:${profit >= 0 ? 'var(--accent)' : 'var(--danger)'};font-family:var(--fh);font-size:1.05rem">৳${fmt(profit)}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════
+   TRANSACTION ACTIONS — FIREBASE
+═══════════════════════════════════════════ */
+window.approveTransaction = function(id, uid, username, amount, type) {
+  showConfirm('✅', 'Approve Transaction?',
+    `Approve ${cap(type)} of ৳${fmt(amount)} for <strong>${username}</strong>? This will update their account.`,
+    async () => {
+      try {
+        // Update tx status in Firebase
+        await update(ref(FB_DB, `transactions/${uid}/${id}`), { status: 'completed' });
+        // Update local cache
+        const txIdx = DATA.transactions.findIndex(t => t.id === id);
+        if (txIdx > -1) DATA.transactions[txIdx].status = 'completed';
+
+        if (type === 'deposit') {
+          const userObj = DATA.users.find(u => u._uid === uid);
+          if (userObj) {
+            const newBal = (parseFloat(userObj.balance) || 0) + parseFloat(amount);
+            const newPend = Math.max(0, (parseFloat(userObj.pendingBal) || 0) - parseFloat(amount));
+            await update(ref(FB_DB, `users/${uid}`), { balance: newBal, pendingBal: newPend });
+            userObj.balance = newBal;
+            userObj.pendingBal = newPend;
+            // Update leaderboard node if exists
+            await update(ref(FB_DB, `leaderboard/${uid}`), {}).catch(() => {});
+          }
+        }
+        toast(`✅ ${cap(type)} approved for ${username}`, 'tw');
+        renderDashboard(); renderDeposits(); renderWithdrawals(); updateNavBadges();
+      } catch(e) { toast('Error: ' + e.message, 'tl'); }
+    }
+  );
+};
+
+window.rejectTransaction = function(id, uid, username, amount, type) {
+  showConfirm('❌', 'Reject Transaction?',
+    `Reject ${cap(type)} of ৳${fmt(amount)} for <strong>${username}</strong>?`,
+    async () => {
+      try {
+        await update(ref(FB_DB, `transactions/${uid}/${id}`), { status: 'rejected' });
+        const txIdx = DATA.transactions.findIndex(t => t.id === id);
+        if (txIdx > -1) DATA.transactions[txIdx].status = 'rejected';
+
+        const userObj = DATA.users.find(u => u._uid === uid);
+        if (type === 'withdrawal' && userObj) {
+          // Refund balance
+          const newBal = (parseFloat(userObj.balance) || 0) + parseFloat(amount);
+          await update(ref(FB_DB, `users/${uid}`), { balance: newBal });
+          userObj.balance = newBal;
+        }
+        if (type === 'deposit' && userObj) {
+          const newPend = Math.max(0, (parseFloat(userObj.pendingBal) || 0) - parseFloat(amount));
+          await update(ref(FB_DB, `users/${uid}`), { pendingBal: newPend });
+          userObj.pendingBal = newPend;
+        }
+        toast(`❌ ${cap(type)} rejected`, 'tl');
+        renderDashboard(); renderDeposits(); renderWithdrawals(); updateNavBadges();
+      } catch(e) { toast('Error: ' + e.message, 'tl'); }
+    }
+  );
+};
+
+window.viewTxDetail = function(id) {
+  const t = DATA.transactions.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('txDetailTitle').textContent = cap(t.type || '') + ' Detail';
+  document.getElementById('txDetailBody').innerHTML = `
+    <div class="slist">
+      <div class="srow"><span class="srl">ID</span><span class="mono" style="font-size:.76rem;color:var(--accent)">${t.id}</span></div>
+      <div class="srow"><span class="srl">User</span><span class="srv">${t.username}</span></div>
+      <div class="srow"><span class="srl">Type</span><span class="srv">${cap(t.type)}</span></div>
+      <div class="srow"><span class="srl">Amount</span><span class="srv" style="color:var(--gold)">৳${fmt(t.amount)}</span></div>
+      <div class="srow"><span class="srl">bKash #</span><span class="mono">${t.bkPhone || '—'}</span></div>
+      <div class="srow"><span class="srl">TrxID</span><span class="mono" style="color:var(--accent)">${t.trxId || '—'}</span></div>
+      <div class="srow"><span class="srl">Status</span><span class="badge ${statusBadge(t.status)}">${t.status}</span></div>
+      <div class="srow"><span class="srl">Note</span><span style="font-size:.83rem;color:var(--text2)">${t.note || '—'}</span></div>
+      <div class="srow"><span class="srl">Time</span><span style="font-size:.82rem">${fmtDate(t.time)}</span></div>
+    </div>`;
+  document.getElementById('txDetailOv').classList.add('open');
+};
+
+/* ═══════════════════════════════════════════
+   USER ACTIONS — FIREBASE
+═══════════════════════════════════════════ */
+window.openEditUser = function(uid) {
+  const u = DATA.users.find(x => x._uid === uid);
+  if (!u) { toast('User not found', 'tl'); return; }
+  CUR_USER = { ...u };
+  document.getElementById('editUserTitle').textContent = 'Edit: ' + u.username;
+  document.getElementById('editUserHero').innerHTML = `
+    <div class="av-lg">${u.username[0].toUpperCase()}</div>
+    <div><div style="font-family:var(--fh);font-size:1.3rem;letter-spacing:2px">${u.username}</div>
+    <div style="font-size:.78rem;color:var(--text2)">${u.phone || 'No phone'} · ${u.email || 'No email'}</div>
+    <div style="margin-top:5px"><span class="badge ${u.banned ? 'badge-red' : 'badge-green'}">${u.banned ? 'Banned' : 'Active'}</span></div></div>`;
+  document.getElementById('euBal').value = parseFloat(u.balance || 0).toFixed(2);
+  document.getElementById('euPend').value = parseFloat(u.pendingBal || 0).toFixed(2);
+  document.getElementById('euBets').value = u.bets || 0;
+  document.getElementById('euWins').value = u.wins || 0;
+  document.getElementById('euLoss').value = u.losses || 0;
+  document.getElementById('euBest').value = parseFloat(u.bestWin || 0).toFixed(2);
+  document.getElementById('euAddAmt').value = '';
+  document.getElementById('euE').className = 'emsg';
+  document.getElementById('euBanStatus').textContent = u.banned ? '🚫 Currently banned' : '✅ Currently active';
+  const banBtn = document.getElementById('euBanBtn');
+  banBtn.textContent = u.banned ? 'UNBAN USER' : 'BAN USER';
+  banBtn.className = 'btn btn-md ' + (u.banned ? 'btn-accent' : 'btn-danger');
+  document.getElementById('editUserOv').classList.add('open');
+};
+
+window.saveEditUser = async function() {
+  if (!CUR_USER) return;
+  const bal = parseFloat(document.getElementById('euBal').value);
+  const pend = parseFloat(document.getElementById('euPend').value);
+  const bets = parseInt(document.getElementById('euBets').value);
+  const wins = parseInt(document.getElementById('euWins').value);
+  const losses = parseInt(document.getElementById('euLoss').value);
+  const best = parseFloat(document.getElementById('euBest').value);
+  const btn = event.target; btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Saving…';
+  try {
+    await update(ref(FB_DB, `users/${CUR_USER._uid}`), { balance: bal, pendingBal: pend, bets, wins, losses, bestWin: best });
+    await update(ref(FB_DB, `leaderboard/${CUR_USER._uid}`), { wins, losses, bets, bestWin: best });
+    const idx = DATA.users.findIndex(u => u._uid === CUR_USER._uid);
+    if (idx > -1) Object.assign(DATA.users[idx], { balance: bal, pendingBal: pend, bets, wins, losses, bestWin: best });
+    cm('editUserOv');
+    toast('User updated ✅', 'tw');
+    renderUsersTable(); renderDashboard();
+  } catch(e) { toast('Error: ' + e.message, 'tl'); }
+  finally { btn.disabled = false; btn.innerHTML = 'SAVE CHANGES'; }
+};
+
+window.adjustBalance = function() {
+  if (!CUR_USER) return;
+  const adj = parseFloat(document.getElementById('euAddAmt').value);
+  if (isNaN(adj) || adj === 0) { se(document.getElementById('euE'), 'Enter a valid amount'); return; }
+  const curBal = parseFloat(document.getElementById('euBal').value) || 0;
+  const newBal = Math.max(0, curBal + adj);
+  document.getElementById('euBal').value = newBal.toFixed(2);
+  document.getElementById('euAddAmt').value = '';
+  toast(`Balance ${adj > 0 ? '+' : ''}৳${fmt(adj)} (now ৳${fmt(newBal)})`, adj > 0 ? 'tw' : 'ti');
+};
+
+window.toggleBanUser = async function() {
+  if (!CUR_USER) return;
+  const newBanned = !CUR_USER.banned;
+  try {
+    await update(ref(FB_DB, `users/${CUR_USER._uid}`), { banned: newBanned });
+    const idx = DATA.users.findIndex(u => u._uid === CUR_USER._uid);
+    if (idx > -1) DATA.users[idx].banned = newBanned;
+    CUR_USER.banned = newBanned;
+    document.getElementById('euBanStatus').textContent = newBanned ? '🚫 Currently banned' : '✅ Currently active';
+    const banBtn = document.getElementById('euBanBtn');
+    banBtn.textContent = newBanned ? 'UNBAN USER' : 'BAN USER';
+    banBtn.className = 'btn btn-md ' + (newBanned ? 'btn-accent' : 'btn-danger');
+    toast(`${CUR_USER.username} ${newBanned ? 'banned 🚫' : 'unbanned ✅'}`, newBanned ? 'tl' : 'tw');
+    renderUsersTable();
+  } catch(e) { toast('Error: ' + e.message, 'tl'); }
+};
+
+window.viewUser = function(uid) {
+  const u = DATA.users.find(x => x._uid === uid);
+  if (!u) return;
+  const txs = DATA.transactions.filter(t => t._uid === uid).slice(0, 8);
+  const wr = u.bets > 0 ? ((u.wins / u.bets) * 100).toFixed(1) + '%' : '—';
+  document.getElementById('vuTitle').textContent = u.username + "'s Profile";
+  document.getElementById('vuBody').innerHTML = `
+    <div class="prof-hero-admin" style="margin:-20px -20px 16px">
+      <div class="av-lg">${u.username[0].toUpperCase()}</div>
+      <div><div style="font-family:var(--fh);font-size:1.4rem;letter-spacing:2px">${u.username}</div>
+      <div style="font-size:.8rem;color:var(--text2);margin-top:3px">${u.phone || ''} ${u.email ? '· ' + u.email : ''}</div>
+      <div style="margin-top:5px;font-size:.76rem;color:var(--text2)">Joined ${fmtDate(u.joined)}</div></div>
+    </div>
+    <div class="slist" style="margin-bottom:16px">
+      <div class="srow"><span class="srl">Balance</span><span class="srv" style="color:var(--gold)">৳${fmt(u.balance||0)}</span></div>
+      <div class="srow"><span class="srl">Pending</span><span class="srv" style="color:var(--bkash)">৳${fmt(u.pendingBal||0)}</span></div>
+      <div class="srow"><span class="srl">Total Bets</span><span class="srv">${u.bets||0}</span></div>
+      <div class="srow"><span class="srl">Wins / Losses</span><span class="srv"><span style="color:var(--accent)">${u.wins||0}</span> / <span style="color:var(--danger)">${u.losses||0}</span></span></div>
+      <div class="srow"><span class="srl">Win Rate</span><span class="srv" style="color:var(--blue)">${wr}</span></div>
+      <div class="srow"><span class="srl">Net Profit</span><span class="srv" style="color:${(u.profit||0)>=0?'var(--accent)':'var(--danger)'}">৳${fmt(u.profit||0)}</span></div>
+      <div class="srow"><span class="srl">Best Win</span><span class="srv" style="color:var(--gold)">৳${fmt(u.bestWin||0)}</span></div>
+      <div class="srow"><span class="srl">Status</span><span class="badge ${u.banned ? 'badge-red' : 'badge-green'}">${u.banned ? 'Banned' : 'Active'}</span></div>
+    </div>
+    ${txs.length ? `<div style="font-size:.7rem;font-weight:700;color:var(--text2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Recent Transactions</div>
+    ${txs.map(t => `<div style="display:flex;justify-content:space-between;padding:7px 10px;background:var(--s2);border-radius:7px;border:1px solid var(--border);margin-bottom:5px;font-size:.82rem">
+      <span>${cap(t.type)}</span><span style="color:${['deposit','win','cashout'].includes(t.type)?'var(--accent)':'var(--danger)'}">${['deposit','win','cashout'].includes(t.type)?'+':'-'}৳${fmt(t.amount)}</span>
+    </div>`).join('')}` : ''}
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-md btn-accent" style="flex:1" onclick="cm('viewUserOv');openEditUser('${uid}')">Edit User</button>
+      <button class="btn btn-md btn-ghost" onclick="cm('viewUserOv')">Close</button>
+    </div>`;
+  document.getElementById('viewUserOv').classList.add('open');
+};
+
+window.openAddUser = function() {
+  ['auUser','auPhone','auEmail','auPass'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('auBal').value = 500;
+  document.getElementById('auE').className = 'emsg';
+  document.getElementById('addUserOv').classList.add('open');
+};
+
+window.doAddUser = async function() {
+  if (!isReady()) { toast('Connect Firebase first', 'ti'); return; }
+  const FB_AUTH_L = getAuth(FB_APP);
+  const u = document.getElementById('auUser').value.trim();
+  const ph = document.getElementById('auPhone').value.trim();
+  const em = document.getElementById('auEmail').value.trim();
+  const pw = document.getElementById('auPass').value;
+  const bal = parseFloat(document.getElementById('auBal').value) || 500;
+  const e = document.getElementById('auE');
+  if (!u || !pw || !em) { se(e, 'Username, email and password required'); return; }
+  if (u.length < 3) { se(e, 'Username must be 3+ chars'); return; }
+  if (pw.length < 6) { se(e, 'Password must be 6+ chars'); return; }
+  const btn = event.target; btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Creating…';
+  try {
+    // Check username uniqueness
+    const usnap = await get(ref(FB_DB, 'usernames/' + u));
+    if (usnap.exists()) { se(e, 'Username already taken'); return; }
+    const cred = await createUserWithEmailAndPassword(FB_AUTH_L, em, pw);
+    const uid = cred.user.uid;
+    const now = new Date().toISOString();
+    const userData = { username: u, phone: ph || '', email: em, balance: bal, pendingBal: 0, bets: 0, wins: 0, losses: 0, wagered: 0, profit: 0, bestWin: 0, joined: now, lastSeen: now };
+    await set(ref(FB_DB, `users/${uid}`), userData);
+    await set(ref(FB_DB, `usernames/${u}`), em);
+    await set(ref(FB_DB, `leaderboard/${uid}`), { username: u, wins: 0, losses: 0, bets: 0, profit: 0, bestWin: 0 });
+    cm('addUserOv');
+    toast(`User ${u} created ✅`, 'tw');
+    await loadUsers();
+    renderDashboard();
+    updateNavBadges();
+  } catch(err) {
+    se(e, err.message || 'Failed');
+  } finally {
+    btn.disabled = false; btn.innerHTML = 'CREATE ACCOUNT';
+  }
+};
+
+/* ═══════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════ */
+window.changeAdminPw = function() {
+  const o = document.getElementById('sPwOld').value;
+  const n = document.getElementById('sPwNew').value;
+  const n2 = document.getElementById('sPwNew2').value;
+  const e = document.getElementById('sPwE');
+  if (o !== (CFG.adminPw || 'admin123')) { se(e, 'Current password incorrect'); return; }
+  if (n.length < 6) { se(e, 'New password must be 6+ chars'); return; }
+  if (n !== n2) { se(e, 'Passwords do not match'); return; }
+  CFG.adminPw = n;
+  localStorage.setItem('mbd_admin_fb_cfg', JSON.stringify(CFG));
+  e.className = 'emsg';
+  ['sPwOld','sPwNew','sPwNew2'].forEach(id => document.getElementById(id).value = '');
+  toast('Admin password updated ✅', 'tw');
+};
+
+window.saveGameSettings = function() {
+  toast('Game limits saved (enforce in Firebase Security Rules or Cloud Functions)', 'ti');
+};
+
+function updateSettingsStats() {
+  document.getElementById('apiStatus').textContent = CFG && CFG.projectId ? `${CFG.projectId} ✅` : 'Not connected';
+  document.getElementById('apiStatus').style.color = CFG && CFG.projectId ? 'var(--accent)' : 'var(--text2)';
+  document.getElementById('merchStatus').textContent = CFG ? (CFG.merch || '—') : '—';
+  document.getElementById('sTotalUsers').textContent = DATA.users.length || '—';
+  const pending = DATA.transactions.filter(t => t.status === 'pending').length;
+  document.getElementById('sPendingCount').textContent = pending || '0';
+}
+
+/* ═══════════════════════════════════════════
+   NAV BADGES
+═══════════════════════════════════════════ */
+function updateNavBadges() {
+  const pendDeps = DATA.transactions.filter(t => t.type === 'deposit' && t.status === 'pending').length;
+  const pendWds = DATA.transactions.filter(t => t.type === 'withdrawal' && t.status === 'pending').length;
+  document.getElementById('nbDeps').textContent = pendDeps || '0';
+  document.getElementById('nbWds').textContent = pendWds || '0';
+  document.getElementById('nbUsers').textContent = DATA.users.length || '—';
+  updateSettingsStats();
+}
+
+/* ═══════════════════════════════════════════
+   PAGINATION
+═══════════════════════════════════════════ */
+function renderPagination(key, total, cur) {
+  const pt = Math.ceil(total / PER) || 1;
+  const infoEl = document.getElementById(key + 'PagInfo');
+  const btnsEl = document.getElementById(key + 'PagBtns');
+  if (infoEl) infoEl.textContent = `Showing ${Math.min((cur-1)*PER+1,total)}–${Math.min(cur*PER,total)} of ${total}`;
+  if (!btnsEl) return;
+  let html = `<button class="page-btn" onclick="goPage('${key}',${cur-1})" ${cur<=1?'disabled':''}>←</button>`;
+  for (let i = 1; i <= pt; i++) {
+    if (pt > 7 && Math.abs(i - cur) > 2 && i !== 1 && i !== pt) { if (i === cur - 3 || i === cur + 3) html += '<span style="color:var(--text3);padding:0 3px">…</span>'; continue; }
+    html += `<button class="page-btn ${i===cur?'active':''}" onclick="goPage('${key}',${i})">${i}</button>`;
+  }
+  html += `<button class="page-btn" onclick="goPage('${key}',${cur+1})" ${cur>=pt?'disabled':''}>→</button>`;
+  btnsEl.innerHTML = html;
+}
+
+window.goPage = function(key, p) {
+  const map = { user: () => { pages.users = p; filterUsers(); }, dep: () => { pages.deps = p; filterDeposits(); }, wd: () => { pages.wds = p; filterWithdrawals(); }, tx: () => { pages.tx = p; filterTx(); }, game: () => { pages.games = p; filterGames(); } };
+  if (map[key]) map[key]();
+};
+
+/* ═══════════════════════════════════════════
+   CONFIRM MODAL
+═══════════════════════════════════════════ */
+function showConfirm(ico, title, sub, cb, btnTxt, btnCls) {
+  document.getElementById('confirmIco').textContent = ico || '⚠️';
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmSub').innerHTML = sub;
+  const btn = document.getElementById('confirmBtn');
+  btn.textContent = btnTxt || 'Confirm';
+  btn.className = 'btn btn-md ' + (btnCls || 'btn-danger');
+  confirmCb = cb;
+  document.getElementById('confirmOv').classList.add('open');
+}
+
+window.runConfirm = function() {
+  cm('confirmOv');
+  if (confirmCb) { confirmCb(); confirmCb = null; }
+};
+
+/* ═══════════════════════════════════════════
+   PAGE NAV
+═══════════════════════════════════════════ */
+window.switchPage = function(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.page === name));
+  document.getElementById('page-' + name).classList.add('active');
+  if (name === 'games' && !DATA.games.length) loadGames();
+  if (window.innerWidth < 900) document.getElementById('sidebar').classList.remove('open');
+};
+
+window.toggleSidebar = function() {
+  document.getElementById('sidebar').classList.toggle('open');
+};
+
+/* ═══════════════════════════════════════════
+   MODAL CLOSE
+═══════════════════════════════════════════ */
+window.cm = function(id) { document.getElementById(id).classList.remove('open'); };
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+function toast(msg, cls = 'ti') {
+  const w = document.getElementById('tw'), el = document.createElement('div');
+  el.className = 'toast ' + cls; el.textContent = msg; w.appendChild(el);
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 3200);
+}
+
+/* ═══════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════ */
+function fmt(n) { const v = parseFloat(n) || 0; return v >= 10000 ? (v / 1000).toFixed(1) + 'k' : v.toFixed(2); }
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+function se(el, msg) { el.textContent = msg; el.className = 'emsg show'; }
+function fmtDate(d) {
+  if (!d) return '—';
+  try { return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+  catch { return '—'; }
+}
+function statusBadge(s) {
+  return s === 'completed' ? 'badge-green' : s === 'rejected' ? 'badge-red' : s === 'pending' ? 'badge-gold' : 'badge-gray';
+}
+</script>
+</body>
+</html>
