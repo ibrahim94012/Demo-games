@@ -1,0 +1,19 @@
+{
+  "rules": {
+    "fcmTokens": {
+      ".read": false,
+      ".write": false,
+      "$token": {
+        ".write": "!data.exists() || newData.exists()",
+        ".validate": "newData.hasChildren(['t','p']) && newData.child('t').isNumber() && newData.child('p').isString() && $token.length > 100 && $token.length < 400"
+      }
+    },
+    "donors": { ".read": true, ".write": true },
+    "donorRequests": { ".read": true, "$requestId": { ".write": true } },
+    "emergencyRequests": { ".read": true, "$requestId": { ".write": true } },
+    "settings": { ".read": true, ".write": true },
+    "appConfig": { ".read": true, ".write": true },
+    "siteStats": { ".read": true, ".write": true },
+    "landingPage": { ".read": true, ".write": true, "donationRecords": { ".write": true } }
+  }
+}
