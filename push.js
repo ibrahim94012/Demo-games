@@ -2,7 +2,7 @@
    VAPID key Firebase Console > Project Settings > Cloud Messaging > Web Push certificates theke boshan */
 (function () {
   "use strict";
-  var VAPID_KEY = "PASTE_YOUR_VAPID_PUBLIC_KEY";
+  var VAPID_KEY = "BK2xznvyYq-N3OXvw5r-Ny_Mvrf1kGKsaageT7H8RleX3JFAx3ocN4CJ-ylhtFqp6rJwfrqwiwsCGNzv8PuS7B8";
   var SW_URL = "firebase-messaging-sw.js";
   var SW_SCOPE = "./fcm-push/";
   var DISMISS_KEY = "bnb_push_dismissed_at";
