@@ -20,6 +20,8 @@ function doPost(e) {
     var title = String(req.title || "").slice(0, 80);
     var body = String(req.body || "").slice(0, 240);
     var url = String(req.url || "").slice(0, 300);
+    var image = String(req.image || "").slice(0, 500);
+    var urgent = req.urgent ? "1" : "0";
     if (!title || !body) return json_({ ok: false, error: "title/body dorkar" });
 
     var access = getAccessToken_();
@@ -35,7 +37,7 @@ function doPost(e) {
           url: "https://fcm.googleapis.com/v1/projects/" + PROJECT_ID + "/messages:send",
           method: "post", contentType: "application/json", muteHttpExceptions: true,
           headers: { Authorization: "Bearer " + access },
-          payload: JSON.stringify({ message: { token: t, data: { title: title, body: body, url: url },
+          payload: JSON.stringify({ message: { token: t, data: { title: title, body: body, url: url, image: image, urgent: urgent },
             webpush: { headers: { Urgency: "high", TTL: "86400" } } } })
         };
       });

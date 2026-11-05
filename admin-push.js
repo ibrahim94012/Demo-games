@@ -5,7 +5,7 @@
   var btn = document.getElementById("pushSendBtn");
   if (!btn) return;
   var T = document.getElementById("pushTitle"), B = document.getElementById("pushBody"),
-      L = document.getElementById("pushLink"), S = document.getElementById("pushStatus");
+      L = document.getElementById("pushLink"), IMG = document.getElementById("pushImage"), URG = document.getElementById("pushUrgent"), S = document.getElementById("pushStatus");
 
   btn.addEventListener("click", function () {
     var title = T.value.trim(), body = B.value.trim(), link = L.value.trim();
@@ -16,12 +16,12 @@
     auth.currentUser.getIdToken().then(function (idToken) {
       return fetch(PUSH_API_URL, {
         method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ idToken: idToken, title: title, body: body, url: link })
+        body: JSON.stringify({ idToken: idToken, title: title, body: body, url: link, image: IMG ? IMG.value.trim() : "", urgent: !!(URG && URG.checked) })
       });
     }).then(function (r) { return r.json(); }).then(function (d) {
       if (d.ok) {
         S.textContent = "✓ " + d.sent + " জনকে পাঠানো হয়েছে" + (d.removed ? " (" + d.removed + " টি অকার্যকর ডিভাইস বাদ)" : "");
-        T.value = ""; B.value = ""; L.value = "";
+        T.value = ""; B.value = ""; L.value = ""; if (IMG) IMG.value = ""; if (URG) URG.checked = false;
         if (typeof showToast === "function") showToast("নোটিফিকেশন পাঠানো হয়েছে");
       } else {
         S.textContent = "ব্যর্থ: " + (d.error === "unauthorized" ? "অনুমোদিত নন — " + (d.reason || "") : d.error);

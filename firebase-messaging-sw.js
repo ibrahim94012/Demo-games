@@ -12,16 +12,21 @@ self.addEventListener("push", event => {
     payload = { data: { title: "B.N.B", body: event.data ? event.data.text() : "" } };
   }
   const d = Object.assign({}, payload.notification || {}, payload.data || {});
-  const title = d.title || "B.N.B";
-  event.waitUntil(
-    self.registration.showNotification(title, {
-      body: d.body || "",
-      icon: SITE_ROOT + "fav.jpeg",
-      badge: SITE_ROOT + "fav.jpeg",
-      tag: "bnb-" + Date.now(),
-      data: { url: d.url || SITE_ROOT }
-    })
-  );
+  const urgent = d.urgent === "1";
+  const opts = {
+    body: d.body || "",
+    icon: d.icon || (SITE_ROOT + "fav.jpeg"),          // ডানদিকের বড় লোগো
+    badge: SITE_ROOT + "badge.png",                    // স্ট্যাটাস বারের ছোট সাদা আইকন (ঐচ্ছিক ফাইল)
+    vibrate: urgent ? [300, 120, 300, 120, 600] : [200, 100, 200],
+    requireInteraction: urgent,                        // জরুরি হলে নিজে থেকে সরবে না
+    timestamp: Date.now(),
+    tag: "bnb-" + Date.now(),
+    renotify: true,
+    actions: [{ action: "open", title: "দেখুন" }],
+    data: { url: d.url || SITE_ROOT }
+  };
+  if (d.image) opts.image = d.image;                   // নিচে বড় ছবি (ঐচ্ছিক)
+  event.waitUntil(self.registration.showNotification((urgent ? "🆘 " : "") + (d.title || "B.N.B"), opts));
 });
 
 self.addEventListener("notificationclick", event => {
