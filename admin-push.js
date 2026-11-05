@@ -1,7 +1,7 @@
 /* admin.html-er </body>-er age: <script src="admin-push.js"></script>
    Admin "নোটিফিকেশন" panel theke push pathay (Apps Script backend-e) */
 (function () {
-  var PUSH_API_URL = "https://script.google.com/macros/s/AKfycbyDst04VWdWcUTZ8ILoJYU06movmDWozWac9P2D1kOc-zqaeABdrXrZCKnrgRslfaa75g/exec"; // push-backend.gs deploy korar pore paoa URL
+  var PUSH_API_URL = "https://script.google.com/macros/s/AKfycbyjwyi2EhF7gRGCbbdOtSE1uszbmFR2zV75TrEgQAVO0QUEuWF5no4cnWXyCeAj7dK_/exec"; // push-backend.gs deploy korar pore paoa URL
   var btn = document.getElementById("pushSendBtn");
   if (!btn) return;
   var T = document.getElementById("pushTitle"), B = document.getElementById("pushBody"),

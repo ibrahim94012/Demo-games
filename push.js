@@ -2,7 +2,7 @@
    VAPID key Firebase Console > Project Settings > Cloud Messaging > Web Push certificates theke boshan */
 (function () {
   "use strict";
-  var VAPID_KEY = "BK2xznvyYq-N3OXvw5r-Ny_Mvrf1kGKsaageT7H8RleX3JFAx3ocN4CJ-ylhtFqp6rJwfrqwiwsCGNzv8PuS7B8";
+  var VAPID_KEY = "BHg7c4T34Vy4LPZWzW7e_T-E1QMOGoy0BorxHNP2MwBQ1f3sgOZiF261pMSjvstEvMC8JTpW1Yd-vV0WHGtDv0Y";
   var SW_URL = "firebase-messaging-sw.js";
   var SW_SCOPE = "./fcm-push/";
   var DISMISS_KEY = "bnb_push_dismissed_at";
@@ -67,45 +67,77 @@
     document.head.appendChild(st);
   }
 
-  function showBanner() {
+  var banner = null;
+  function closeBanner() { if (banner) { banner.remove(); banner = null; } }
+  function dismissForSession() {
+    try { sessionStorage.setItem(DISMISS_KEY, "1"); } catch (e) {}
+    closeBanner();
+  }
+
+  function showBanner(perm) {
+    if (banner) return;
     var needsInstall = isIOS && !standalone;
-    var box = document.createElement("div");
-    box.id = "pushBanner";
-    box.innerHTML =
-      "<b>🔔 জরুরি আপডেট পেতে চান?</b>" +
-      "<p>" + (needsInstall
-        ? "আইফোনে নোটিফিকেশন পেতে Safari-র Share বাটনে চেপে <b style='display:inline'>“Add to Home Screen”</b> করুন, তারপর অ্যাপটি খুলে আবার অনুমতি দিন।"
-        : "রক্তের জরুরি অনুরোধ ও নতুন আপডেট সরাসরি আপনার ফোনে নোটিফিকেশন হিসেবে পেতে অনুমতি দিন।") + "</p>" +
-      "<div class='row'><button class='no' type='button'>পরে</button>" +
-      (needsInstall ? "" : "<button class='yes' type='button'>চালু করুন</button>") + "</div>";
-    document.body.appendChild(box);
-    box.querySelector(".no").onclick = function () {
-      try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch (e) {}
-      box.remove();
-    };
-    var yes = box.querySelector(".yes");
-    if (yes) yes.onclick = function () {
-      yes.disabled = true; yes.textContent = "অপেক্ষা করুন…";
-      Notification.requestPermission().then(function (perm) {
-        if (perm === "granted") return saveToken().then(function () { box.remove(); });
-        box.remove();
-      }).catch(function (e) { console.log("push setup failed:", e); box.remove(); });
-    };
+    var html, hasYes = false;
+    if (perm === "denied") {
+      // আগে ব্লক/ডিনাই করা হয়েছে: ব্রাউজার আর নিজে থেকে প্রশ্ন করবে না, তাই ম্যানুয়ালি চালু করার নির্দেশ
+      html = "<b>🔕 নোটিফিকেশন বন্ধ আছে</b>" +
+        "<p>জরুরি রক্তের অনুরোধ ও আপডেট পেতে নোটিফিকেশন চালু করুন: ব্রাউজারের ঠিকানা বারের পাশে <b style='display:inline'>🔒 / ⚙️</b> আইকনে চাপুন → <b style='display:inline'>Notifications</b> → <b style='display:inline'>Allow</b>। তারপর পেজটি রিলোড করুন।</p>" +
+        "<div class='row'><button class='no' type='button'>ঠিক আছে</button></div>";
+    } else if (needsInstall) {
+      html = "<b>🔔 জরুরি আপডেট পেতে চান?</b>" +
+        "<p>আইফোনে নোটিফিকেশন পেতে Safari-র Share বাটনে চেপে <b style='display:inline'>“Add to Home Screen”</b> করুন, তারপর অ্যাপটি খুলে অনুমতি দিন।</p>" +
+        "<div class='row'><button class='no' type='button'>পরে</button></div>";
+    } else {
+      hasYes = true;
+      html = "<b>🔔 জরুরি আপডেট পেতে চান?</b>" +
+        "<p>রক্তের জরুরি অনুরোধ ও নতুন আপডেট সরাসরি আপনার ফোনে নোটিফিকেশন হিসেবে পেতে অনুমতি দিন।</p>" +
+        "<div class='row'><button class='no' type='button'>পরে</button><button class='yes' type='button'>চালু করুন</button></div>";
+    }
+    banner = document.createElement("div");
+    banner.id = "pushBanner";
+    banner.innerHTML = html;
+    document.body.appendChild(banner);
+    banner.querySelector(".no").onclick = dismissForSession;
+    if (hasYes) {
+      var yes = banner.querySelector(".yes");
+      yes.onclick = function () {
+        yes.disabled = true; yes.textContent = "অপেক্ষা করুন…";
+        Notification.requestPermission().then(function (result) {
+          if (result === "granted") return saveToken().then(closeBanner);
+          closeBanner(); // ডিনাই করলে এখন বন্ধ; পরের ভিজিটে আবার পপআপ আসবে
+        }).catch(function (e) { console.log("push setup failed:", e); closeBanner(); });
+      };
+    }
+  }
+
+  // ব্যবহারকারী ব্রাউজার সেটিং থেকে Allow করলে নিজে থেকেই সাবস্ক্রাইব হয়ে যাবে
+  function watchPermission() {
+    if (!navigator.permissions || !navigator.permissions.query) return;
+    navigator.permissions.query({ name: "notifications" }).then(function (st) {
+      st.onchange = function () {
+        if (st.state === "granted") { closeBanner(); whenFirebaseReady(function () { saveToken().catch(function () {}); }); }
+      };
+    }).catch(function () {});
   }
 
   function init() {
     var perm = ("Notification" in window) ? Notification.permission : "default";
-    if (perm === "denied") return;
+
+    // ✅ Allow করা থাকলে: আর কোনো পপআপ নয় (শুধু টোকেন ঠিক রাখা)
     if (perm === "granted") {
-      // token 7 diner purono hole abar refresh kore nei
       var last = 0; try { last = parseInt(localStorage.getItem(TOKEN_KEY), 10) || 0; } catch (e) {}
-      if (Date.now() - last > 7 * DAY) whenFirebaseReady(function () { saveToken().catch(function () {}); });
+      if (!last || Date.now() - last > 7 * DAY) whenFirebaseReady(function () { saveToken().catch(function () {}); });
       return;
     }
-    var d = 0; try { d = parseInt(localStorage.getItem(DISMISS_KEY), 10) || 0; } catch (e) {}
-    if (Date.now() - d < 7 * DAY) return; // "পরে" dile 7 din ar dekhabe na
+
+    // ❌ নতুন ভিজিটর (default) বা Deny করা (denied): প্রতিবার নতুন ভিজিটে পপআপ আসবে
+    // শুধু একই সেশনে "পরে/ঠিক আছে" চাপলে ওই সেশনে আর দেখাবে না
+    var dismissed = false; try { dismissed = sessionStorage.getItem(DISMISS_KEY) === "1"; } catch (e) {}
+    if (dismissed) return;
+
     injectStyle();
-    setTimeout(showBanner, 6000); // page load-er 6 sec pore, jate user birokto na hoy
+    watchPermission();
+    setTimeout(function () { showBanner(perm); }, 5000);
   }
 
   window.addEventListener("load", init);
