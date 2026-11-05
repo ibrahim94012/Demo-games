@@ -2,12 +2,12 @@
    VAPID key: Firebase Console > Project Settings > Cloud Messaging > Web Push certificates */
 (function () {
   "use strict";
-  var PUSH_VERSION = "v6";
+  var PUSH_VERSION = "v7";
   var VAPID_KEY = "BHg7c4T34Vy4LPZWzW7e_T-E1QMOGoy0BorxHNP2MwBQ1f3sgOZiF261pMSjvstEvMC8JTpW1Yd-vV0WHGtDv0Y";
   var SW_URL = "firebase-messaging-sw.js";
   var SW_SCOPE = "./fcm-push/";
   var DISMISS_KEY = "bnb_push_dismissed";
-  var TOKEN_KEY = "bnb_push_token_at";
+  var TOKEN_KEY = "bnb_push_app_token_at"; // নতুন নাম: আগে ব্রাউজারে সেভ হওয়া ডিভাইসও অ্যাপ থেকে আবার "app" হিসেবে নিবন্ধিত হবে
   var DAY = 86400000;
 
   var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
