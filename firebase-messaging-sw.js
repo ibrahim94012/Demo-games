@@ -6,6 +6,18 @@ const SITE_ROOT = new URL("./", self.location.href).href; // sw file jei folder-
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
 
+/* Icon khuje ber kore: prothome icon-192.png (chhoto, square PNG), na thakle fav.jpeg */
+async function pickIcon(custom) {
+  if (custom) return custom;
+  for (const name of ["icon-192.png", "fav.jpeg"]) {
+    try {
+      const r = await fetch(SITE_ROOT + name, { method: "HEAD", cache: "no-cache" });
+      if (r.ok) return SITE_ROOT + name;
+    } catch (e) {}
+  }
+  return undefined;
+}
+
 self.addEventListener("push", event => {
   let payload = {};
   try { payload = event.data ? event.data.json() : {}; } catch (e) {
@@ -13,20 +25,24 @@ self.addEventListener("push", event => {
   }
   const d = Object.assign({}, payload.notification || {}, payload.data || {});
   const urgent = d.urgent === "1";
-  const opts = {
-    body: d.body || "",
-    icon: d.icon || (SITE_ROOT + "fav.jpeg"),          // ডানদিকের বড় লোগো
-    badge: SITE_ROOT + "fav.jpeg",                    // স্ট্যাটাস বারের ছোট সাদা আইকন (ঐচ্ছিক ফাইল)
-    vibrate: urgent ? [300, 120, 300, 120, 600] : [200, 100, 200],
-    requireInteraction: urgent,                        // জরুরি হলে নিজে থেকে সরবে না
-    timestamp: Date.now(),
-    tag: "bnb-" + Date.now(),
-    renotify: true,
-    actions: [{ action: "open", title: "দেখুন" }],
-    data: { url: d.url || SITE_ROOT }
-  };
-  if (d.image) opts.image = d.image;                   // নিচে বড় ছবি (ঐচ্ছিক)
-  event.waitUntil(self.registration.showNotification((urgent ? "🆘 " : "") + (d.title || "B.N.B"), opts));
+
+  event.waitUntil((async () => {
+    const opts = {
+      body: d.body || "",
+      badge: SITE_ROOT + "badge.png",
+      vibrate: urgent ? [300, 120, 300, 120, 600] : [200, 100, 200],
+      requireInteraction: urgent,
+      timestamp: Date.now(),
+      tag: "bnb-" + Date.now(),
+      renotify: true,
+      actions: [{ action: "open", title: "দেখুন" }],
+      data: { url: d.url || SITE_ROOT }
+    };
+    const icon = await pickIcon(d.icon);
+    if (icon) opts.icon = icon;
+    if (d.image) opts.image = d.image;
+    await self.registration.showNotification((urgent ? "🆘 " : "") + (d.title || "B.N.B"), opts);
+  })());
 });
 
 self.addEventListener("notificationclick", event => {
