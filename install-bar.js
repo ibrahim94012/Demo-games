@@ -9,6 +9,10 @@
   var HIDE_DAYS = 3;
   var BAR_H = 46;
 
+  // APK সরাসরি ডাউনলোডের লিংক (GitHub Releases-এ আপলোড করা .apk ফাইলের লিংক)। না থাকলে ফাঁকা রাখুন।
+  // উদাহরণ: "https://github.com/bnb247/bnb/releases/download/v1/BNB.apk"
+  var APK_URL = "";
+
   var standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   if (standalone) return;                                   // অ্যাপের ভেতরে আছে: বার দরকার নেই
 
@@ -122,6 +126,13 @@
     }
   }
 
+  function downloadApk() {
+    var a = document.createElement("a");
+    a.href = APK_URL; a.download = "BNB.apk"; a.rel = "noopener";
+    document.body.appendChild(a); a.click(); a.remove();
+    toast("ডাউনলোড শুরু হয়েছে। শেষ হলে ফাইলটি খুলে Install চাপুন।");
+  }
+
   function onMainClick() {
     var open = installed && !deferred;
     if (open) return openApp();
@@ -133,6 +144,7 @@
       }).catch(function () {});
       return;
     }
+    if (isAndroid && APK_URL) return downloadApk();            // ইনস্টল বক্স না এলে সরাসরি APK ডাউনলোড
     howToModal();                                              // iPhone বা যেখানে সরাসরি ইনস্টল বক্স নেই
   }
 
