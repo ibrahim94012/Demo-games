@@ -20,7 +20,7 @@
       });
     }).then(function (r) { return r.json(); }).then(function (d) {
       if (d.ok) {
-        S.textContent = "✓ " + d.sent + " জনকে পাঠানো হয়েছে" + (d.removed ? " (" + d.removed + " টি অকার্যকর ডিভাইস বাদ)" : "");
+        S.textContent = "✓ " + d.sent + " জনকে পাঠানো হয়েছে" + (d.devices && d.devices.length ? " [" + d.devices.join(", ") + "]" : "") + (d.removed ? " (" + d.removed + " টি অকার্যকর ডিভাইস বাদ)" : "") + (d.failed && d.failed.length ? " ⚠ " + d.failed.join(" | ") : "");
         T.value = ""; B.value = ""; L.value = ""; if (IMG) IMG.value = ""; if (URG) URG.checked = false;
         if (typeof showToast === "function") showToast("নোটিফিকেশন পাঠানো হয়েছে");
       } else {

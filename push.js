@@ -2,7 +2,7 @@
    VAPID key: Firebase Console > Project Settings > Cloud Messaging > Web Push certificates */
 (function () {
   "use strict";
-  var PUSH_VERSION = "v7";
+  var PUSH_VERSION = "v8";
   var VAPID_KEY = "BHg7c4T34Vy4LPZWzW7e_T-E1QMOGoy0BorxHNP2MwBQ1f3sgOZiF261pMSjvstEvMC8JTpW1Yd-vV0WHGtDv0Y";
   var SW_URL = "firebase-messaging-sw.js";
   var SW_SCOPE = "./fcm-push/";
@@ -57,6 +57,13 @@
     });
   }
 
+  function deviceLabel() {
+    var os = /android/i.test(navigator.userAgent) ? "Android" : isIOS ? "iPhone" :
+      /windows/i.test(navigator.userAgent) ? "Windows" : /cros/i.test(navigator.userAgent) ? "ChromeOS" :
+      /mac/i.test(navigator.userAgent) ? "Mac" : "Other";
+    return os + " " + Math.min(screen.width, screen.height) + "px";
+  }
+
   function saveToken() {
     if (VAPID_KEY.indexOf("PASTE_") === 0) return Promise.reject(new Error("VAPID key push.js-e boshano hoyni"));
     var reg0;
@@ -70,7 +77,7 @@
       })
       .then(function (token) {
         if (!token) throw new Error("[5] FCM token paoa jayni");
-        return step("6 database write", 15000, db.ref("fcmTokens/" + token).set({ t: Date.now(), p: "app" }));
+        return step("6 database write", 15000, db.ref("fcmTokens/" + token).set({ t: Date.now(), p: "app", d: deviceLabel() }));
       })
       .then(function () {
         console.log("PUSH: fcmTokens-e save hoyeche");

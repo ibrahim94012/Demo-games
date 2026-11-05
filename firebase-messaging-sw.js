@@ -1,6 +1,8 @@
 /* B.N.B push service worker.
    Firebase library chhara, shorashori Web Push handle kore, tai
    admin tab ba onno tab khola thakleo notification sob somoy dekhabe. */
+/* v3: app khola/bondho/background — sob obosthay notification dekhabe (kono "window visible" check nei) */
+const SW_VERSION = "v3";
 const SITE_ROOT = new URL("./", self.location.href).href; // sw file jei folder-e (.../bnb/)
 
 self.addEventListener("install", () => self.skipWaiting());
