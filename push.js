@@ -32,15 +32,28 @@
     })();
   }
 
+  function waitActive(reg) {
+    return new Promise(function (resolve, reject) {
+      var sw = reg.installing || reg.waiting || reg.active;
+      if (!sw) return reject(new Error("service worker register hoyni"));
+      if (sw.state === "activated") return resolve(reg);
+      var t = setTimeout(function () { reject(new Error("service worker activate hoyni (timeout)")); }, 15000);
+      sw.addEventListener("statechange", function () {
+        if (sw.state === "activated") { clearTimeout(t); resolve(reg); }
+        if (sw.state === "redundant") { clearTimeout(t); reject(new Error("service worker file load hoyni (firebase-messaging-sw.js upload hoyeche?)")); }
+      });
+    });
+  }
+
   function saveToken() {
+    if (VAPID_KEY.indexOf("PASTE_") === 0) return Promise.reject(new Error("VAPID key push.js-e boshano hoyni"));
     return loadScript("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js")
+      .then(function () { return firebase.messaging.isSupported ? firebase.messaging.isSupported() : true; })
+      .then(function (ok) { if (!ok) throw new Error("ei browser push support kore na"); })
       .then(function () { return navigator.serviceWorker.register(SW_URL, { scope: SW_SCOPE }); })
-      .then(function (reg) {
-        return navigator.serviceWorker.ready.then(function () { return reg; });
-      })
+      .then(waitActive)
       .then(function (reg) {
         var messaging = firebase.messaging();
-        // site khola obosthay push ashle ekhane dekhano hoy
         messaging.onMessage(function (p) {
           var d = p.data || {};
           reg.showNotification(d.title || "B.N.B", { body: d.body || "", icon: "fav.jpeg", data: { url: d.url || "./" } });
@@ -48,9 +61,13 @@
         return messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
       })
       .then(function (token) {
-        if (!token) throw new Error("no token");
+        if (!token) throw new Error("FCM token paoa jayni");
+        console.log("FCM token paoa gelo, database-e save hocche...");
         return db.ref("fcmTokens/" + token).set({ t: Date.now(), p: isIOS ? "ios" : "web" })
-          .then(function () { try { localStorage.setItem(TOKEN_KEY, String(Date.now())); } catch (e) {} });
+          .then(function () {
+            console.log("fcmTokens-e save hoyeche");
+            try { localStorage.setItem(TOKEN_KEY, String(Date.now())); } catch (e) {}
+          });
       });
   }
 
@@ -72,6 +89,15 @@
   function dismissForSession() {
     try { sessionStorage.setItem(DISMISS_KEY, "1"); } catch (e) {}
     closeBanner();
+  }
+
+  function showError(e) {
+    console.error("PUSH SETUP FAILED:", e);
+    var msg = (e && (e.code ? e.code + " - " : "") + (e.message || e)) || "unknown";
+    if (!banner) { injectStyle(); banner = document.createElement("div"); banner.id = "pushBanner"; document.body.appendChild(banner); }
+    banner.innerHTML = "<b>⚠️ নোটিফিকেশন চালু করা যায়নি</b><p style='word-break:break-word;font-size:12.5px;color:#9E1B32'>" +
+      String(msg).replace(/</g, "&lt;") + "</p><div class='row'><button class='no' type='button'>বন্ধ করুন</button></div>";
+    banner.querySelector(".no").onclick = closeBanner;
   }
 
   function showBanner(perm) {
@@ -103,9 +129,9 @@
       yes.onclick = function () {
         yes.disabled = true; yes.textContent = "অপেক্ষা করুন…";
         Notification.requestPermission().then(function (result) {
-          if (result === "granted") return saveToken().then(closeBanner);
+          if (result === "granted") return saveToken().then(closeBanner).catch(showError);
           closeBanner(); // ডিনাই করলে এখন বন্ধ; পরের ভিজিটে আবার পপআপ আসবে
-        }).catch(function (e) { console.log("push setup failed:", e); closeBanner(); });
+        }).catch(showError);
       };
     }
   }
@@ -126,7 +152,7 @@
     // ✅ Allow করা থাকলে: আর কোনো পপআপ নয় (শুধু টোকেন ঠিক রাখা)
     if (perm === "granted") {
       var last = 0; try { last = parseInt(localStorage.getItem(TOKEN_KEY), 10) || 0; } catch (e) {}
-      if (!last || Date.now() - last > 7 * DAY) whenFirebaseReady(function () { saveToken().catch(function () {}); });
+      if (!last || Date.now() - last > 7 * DAY) whenFirebaseReady(function () { saveToken().catch(function (e) { console.error('PUSH TOKEN SAVE FAILED:', e); }); });
       return;
     }
 
