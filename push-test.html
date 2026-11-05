@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Push Test</title>
+<style>body{font-family:system-ui,sans-serif;padding:16px;max-width:640px;margin:auto}
+button{padding:12px 18px;font-size:16px;background:#9E1B32;color:#fff;border:0;border-radius:10px}
+pre{white-space:pre-wrap;word-break:break-word;background:#111;color:#0f0;padding:12px;border-radius:10px;font-size:13px}</style></head>
+<body>
+<h3>B.N.B Push পরীক্ষা</h3>
+<p>বাটনে চাপুন। প্রতিটি ধাপের ফল নিচে দেখাবে। শেষে পুরো লেখাটি কপি/স্ক্রিনশট করে পাঠান।</p>
+<button id="go">পরীক্ষা শুরু করুন</button>
+<pre id="log">অপেক্ষা…</pre>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<script>
+var VAPID_KEY = "PASTE_YOUR_VAPID_PUBLIC_KEY";
+var cfg = {apiKey:"AIzaSyCH5oHFzuC6qbAjV7cgHWQopHtGA180jiU",authDomain:"blood-network-a851b.firebaseapp.com",
+ databaseURL:"https://blood-network-a851b-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"blood-network-a851b",
+ messagingSenderId:"713058868424",appId:"1:713058868424:web:599441c954490ca5cb19fd"};
+var L = document.getElementById("log"); L.textContent = "";
+function log(m){ L.textContent += m + "\n"; }
+function T(ms,p,name){ return Promise.race([p,new Promise(function(_,r){setTimeout(function(){r(new Error(name+" TIMEOUT "+ms/1000+"s"))},ms)})]); }
+
+document.getElementById("go").onclick = async function () {
+  L.textContent = "";
+  try {
+    log("1) Page: " + location.href);
+    log("2) HTTPS: " + (location.protocol === "https:" ? "OK" : "NOT OK"));
+    log("3) Notification.permission: " + (window.Notification ? Notification.permission : "UNSUPPORTED"));
+    log("4) PushManager: " + ("PushManager" in window ? "OK" : "NOT SUPPORTED (iPhone hole Home Screen app khulun)"));
+    log("5) VAPID bosano: " + (VAPID_KEY.indexOf("PASTE_") === 0 ? "NA - boshano hoyni!" : "OK (" + VAPID_KEY.length + " chars)"));
+
+    var r = await fetch("firebase-messaging-sw.js", {cache:"no-store"});
+    log("6) firebase-messaging-sw.js file: HTTP " + r.status + (r.ok ? " OK" : " ❌ FILE NEI/VUL JAYGAY"));
+
+    var regs = await navigator.serviceWorker.getRegistrations();
+    log("7) Existing service worker: " + (regs.length ? regs.map(function(x){return x.scope}).join(", ") : "kono nei"));
+
+    var perm = Notification.permission;
+    if (perm === "default") perm = await Notification.requestPermission();
+    log("8) Permission ekhon: " + perm);
+    if (perm !== "granted") throw new Error("Permission granted noy. Site settings theke Allow korun.");
+
+    firebase.initializeApp(cfg);
+    var reg = await T(15000, navigator.serviceWorker.register("firebase-messaging-sw.js", {scope:"./fcm-push/"}), "SW register");
+    log("9) SW register OK, scope: " + reg.scope);
+    await T(15000, navigator.serviceWorker.ready.then(function(){ return new Promise(function(res){
+      var sw = reg.installing || reg.waiting || reg.active;
+      if (sw.state === "activated") return res();
+      sw.addEventListener("statechange", function(){ if (sw.state === "activated") res(); });
+    }); }), "SW activate");
+    log("10) SW active");
+
+    var token = await T(25000, firebase.messaging().getToken({vapidKey: VAPID_KEY, serviceWorkerRegistration: reg}), "getToken");
+    log("11) FCM token OK: " + token.slice(0, 24) + "… (" + token.length + " chars)");
+
+    var db = firebase.database();
+    await T(15000, db.ref("fcmTokens/" + token).set({t: Date.now(), p: "web"}), "DB write");
+    log("12) ✅ Database-e save hoyeche! Firebase Console > Realtime Database > fcmTokens dekhun.");
+  } catch (e) {
+    log("\n❌ ERROR: " + (e.code ? e.code + " - " : "") + e.message);
+  }
+};
+</script></body></html>
