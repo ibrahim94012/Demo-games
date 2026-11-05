@@ -2,7 +2,7 @@
    VAPID key: Firebase Console > Project Settings > Cloud Messaging > Web Push certificates */
 (function () {
   "use strict";
-  var PUSH_VERSION = "v5";
+  var PUSH_VERSION = "v6";
   var VAPID_KEY = "BHg7c4T34Vy4LPZWzW7e_T-E1QMOGoy0BorxHNP2MwBQ1f3sgOZiF261pMSjvstEvMC8JTpW1Yd-vV0WHGtDv0Y";
   var SW_URL = "firebase-messaging-sw.js";
   var SW_SCOPE = "./fcm-push/";
@@ -12,6 +12,11 @@
 
   var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   var standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  // শুধু ইনস্টল করা অ্যাপ (PWA/APK) হিসেবে খুললেই নোটিফিকেশন চালু হবে; সাধারণ ব্রাউজার ট্যাবে নয়
+  var installedApp = standalone ||
+    window.matchMedia("(display-mode: fullscreen)").matches ||
+    window.matchMedia("(display-mode: minimal-ui)").matches ||
+    (document.referrer || "").indexOf("android-app://") === 0;
   var hasPush = ("serviceWorker" in navigator) && ("Notification" in window) && ("PushManager" in window);
 
   var isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
@@ -65,7 +70,7 @@
       })
       .then(function (token) {
         if (!token) throw new Error("[5] FCM token paoa jayni");
-        return step("6 database write", 15000, db.ref("fcmTokens/" + token).set({ t: Date.now(), p: isIOS ? "ios" : "web" }));
+        return step("6 database write", 15000, db.ref("fcmTokens/" + token).set({ t: Date.now(), p: "app" }));
       })
       .then(function () {
         console.log("PUSH: fcmTokens-e save hoyeche");
@@ -128,7 +133,7 @@
   function showDebug(perm) {
     makeBanner("<b>🛠 Push debug (" + PUSH_VERSION + ")</b><p style='font-size:12.5px;word-break:break-word'>" +
       "permission: " + perm + "<br>PushManager: " + hasPush + "<br>iOS: " + isIOS + " | installed app: " + standalone +
-      "<br>mobile: " + isMobile + "<br>VAPID: " + (VAPID_KEY.indexOf("PASTE_") === 0 ? "BOSHANO NEI" : "OK") + "</p>" +
+      "<br>installedApp: " + installedApp + "<br>mobile: " + isMobile + "<br>VAPID: " + (VAPID_KEY.indexOf("PASTE_") === 0 ? "BOSHANO NEI" : "OK") + "</p>" +
       "<div class='row'><button class='no' type='button'>বন্ধ</button></div>");
   }
 
@@ -160,6 +165,9 @@
 
     if (/pushdebug/.test(location.search + location.hash)) return showDebug(perm); // সাইটের ঠিকানার শেষে ?pushdebug দিলে অবস্থা দেখায়
 
+    // 🌐 সাধারণ ওয়েবসাইট (ব্রাউজার ট্যাব): কোনো পপআপ নেই, কোনো সাবস্ক্রিপশন নেই
+    if (!installedApp) return;
+
     if (!supported) {
       var d0 = false; try { d0 = sessionStorage.getItem(DISMISS_KEY) === "1"; } catch (e) {}
       if (!d0) setTimeout(showUnsupported, 2500);
@@ -180,7 +188,6 @@
     watchPermission();
     setTimeout(function () {
       if (perm === "denied") return showDenied();          // ❌ Deny করা: প্রতি নতুন ভিজিটে নির্দেশ
-      if (isIOS && !standalone) return showIOSInstall();   // iPhone Safari ট্যাব
       if (isIOS) return showIOSAsk();                      // iPhone অ্যাপ
       if (isMobile) return showMobileAsk();                // Android: বাটনে ট্যাপ করলে ব্রাউজারের Allow বক্স
       askNative();                                         // কম্পিউটার: সরাসরি ডিফল্ট পারমিশন বক্স
