@@ -2,7 +2,7 @@
    VAPID key: Firebase Console > Project Settings > Cloud Messaging > Web Push certificates */
 (function () {
   "use strict";
-  var PUSH_VERSION = "v4";
+  var PUSH_VERSION = "v5";
   var VAPID_KEY = "BHg7c4T34Vy4LPZWzW7e_T-E1QMOGoy0BorxHNP2MwBQ1f3sgOZiF261pMSjvstEvMC8JTpW1Yd-vV0WHGtDv0Y";
   var SW_URL = "firebase-messaging-sw.js";
   var SW_SCOPE = "./fcm-push/";
@@ -14,7 +14,8 @@
   var standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   var hasPush = ("serviceWorker" in navigator) && ("Notification" in window) && ("PushManager" in window);
 
-  if (!hasPush && !isIOS) return;
+  var isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+  var supported = hasPush || isIOS;
   if (location.protocol !== "https:" && location.hostname !== "localhost") return;
 
   function loadScript(src) {
@@ -40,13 +41,14 @@
   }
   function waitActive(reg) {
     return new Promise(function (resolve, reject) {
-      var sw = reg.installing || reg.waiting || reg.active;
-      if (!sw) return reject(new Error("service worker register hoyni"));
-      if (sw.state === "activated") return resolve(reg);
-      sw.addEventListener("statechange", function () {
-        if (sw.state === "activated") resolve(reg);
-        if (sw.state === "redundant") reject(new Error("firebase-messaging-sw.js load hoyni (upload hoyeche?)"));
-      });
+      var n = 0;
+      (function poll() {
+        if (reg.active && reg.active.state === "activated") return resolve(reg);
+        var w = reg.installing || reg.waiting;
+        if (w && w.state === "redundant") return reject(new Error("firebase-messaging-sw.js load hoyni (file-e error ba upload hoyni)"));
+        if (++n > 100) return reject(new Error("service worker activate hoyni, state=" + (w ? w.state : "none")));
+        setTimeout(poll, 150);
+      })();
     });
   }
 
@@ -112,6 +114,24 @@
       "<p>আইফোনে নোটিফিকেশন পেতে Safari-র Share বাটনে চেপে <b style='display:inline'>“Add to Home Screen”</b> করুন, তারপর অ্যাপটি খুলে অনুমতি দিন।</p>" +
       "<div class='row'><button class='no' type='button'>পরে</button></div>");
   }
+  function showMobileAsk() {
+    var b = makeBanner("<b>🔔 জরুরি আপডেট পেতে চান?</b>" +
+      "<p>রক্তের জরুরি অনুরোধ ও নতুন আপডেট সরাসরি ফোনে পেতে নিচের বাটনে চাপুন, তারপর <b style='display:inline'>Allow</b> দিন।</p>" +
+      "<div class='row'><button class='no' type='button'>পরে</button><button class='yes' type='button'>চালু করুন</button></div>");
+    b.querySelector(".yes").onclick = function () { askNative(); }; // ফোনে বাটন-ট্যাপ ছাড়া Chrome পারমিশন বক্স দেখায় না
+  }
+  function showUnsupported() {
+    makeBanner("<b>🔕 এই ব্রাউজারে নোটিফিকেশন চলবে না</b>" +
+      "<p>নোটিফিকেশন পেতে সাইটটি <b style='display:inline'>Chrome</b> ব্রাউজারে খুলুন (Facebook/Messenger-এর ভেতরের ব্রাউজারে সাপোর্ট নেই)।</p>" +
+      "<div class='row'><button class='no' type='button'>ঠিক আছে</button></div>");
+  }
+  function showDebug(perm) {
+    makeBanner("<b>🛠 Push debug (" + PUSH_VERSION + ")</b><p style='font-size:12.5px;word-break:break-word'>" +
+      "permission: " + perm + "<br>PushManager: " + hasPush + "<br>iOS: " + isIOS + " | installed app: " + standalone +
+      "<br>mobile: " + isMobile + "<br>VAPID: " + (VAPID_KEY.indexOf("PASTE_") === 0 ? "BOSHANO NEI" : "OK") + "</p>" +
+      "<div class='row'><button class='no' type='button'>বন্ধ</button></div>");
+  }
+
   function showIOSAsk() {
     var b = makeBanner("<b>🔔 জরুরি আপডেট পেতে চান?</b><p>নোটিফিকেশন চালু করতে নিচের বাটনে চাপুন।</p>" +
       "<div class='row'><button class='no' type='button'>পরে</button><button class='yes' type='button'>চালু করুন</button></div>");
@@ -138,6 +158,14 @@
   function init() {
     var perm = ("Notification" in window) ? Notification.permission : "default";
 
+    if (/pushdebug/.test(location.search + location.hash)) return showDebug(perm); // সাইটের ঠিকানার শেষে ?pushdebug দিলে অবস্থা দেখায়
+
+    if (!supported) {
+      var d0 = false; try { d0 = sessionStorage.getItem(DISMISS_KEY) === "1"; } catch (e) {}
+      if (!d0) setTimeout(showUnsupported, 2500);
+      return;
+    }
+
     // ✅ Allow করা: আর পপআপ নেই। শুধু SW আপডেট ও token ঠিক রাখা
     if (perm === "granted") {
       navigator.serviceWorker.register(SW_URL, { scope: SW_SCOPE }).then(function (r) { r.update().catch(function () {}); }).catch(function () {});
@@ -153,9 +181,10 @@
     setTimeout(function () {
       if (perm === "denied") return showDenied();          // ❌ Deny করা: প্রতি নতুন ভিজিটে নির্দেশ
       if (isIOS && !standalone) return showIOSInstall();   // iPhone Safari ট্যাব
-      if (isIOS) return showIOSAsk();                      // iPhone অ্যাপ: ট্যাপ লাগে
-      askNative();                                         // Android/PC: সরাসরি ডিফল্ট পারমিশন বক্স
-    }, 2500);
+      if (isIOS) return showIOSAsk();                      // iPhone অ্যাপ
+      if (isMobile) return showMobileAsk();                // Android: বাটনে ট্যাপ করলে ব্রাউজারের Allow বক্স
+      askNative();                                         // কম্পিউটার: সরাসরি ডিফল্ট পারমিশন বক্স
+    }, 2000);
   }
 
   window.addEventListener("load", init);

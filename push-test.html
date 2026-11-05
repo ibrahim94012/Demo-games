@@ -44,11 +44,16 @@ document.getElementById("go").onclick = async function () {
     firebase.initializeApp(cfg);
     var reg = await T(15000, navigator.serviceWorker.register("firebase-messaging-sw.js", {scope:"./fcm-push/"}), "SW register");
     log("9) SW register OK, scope: " + reg.scope);
-    await T(15000, navigator.serviceWorker.ready.then(function(){ return new Promise(function(res){
-      var sw = reg.installing || reg.waiting || reg.active;
-      if (sw.state === "activated") return res();
-      sw.addEventListener("statechange", function(){ if (sw.state === "activated") res(); });
-    }); }), "SW activate");
+    await T(15000, new Promise(function (res, rej) {
+      var n = 0;
+      (function poll() {
+        if (reg.active && reg.active.state === "activated") return res();
+        var w = reg.installing || reg.waiting;
+        if (w && w.state === "redundant") return rej(new Error("SW redundant (file e error ache)"));
+        if (++n > 100) return rej(new Error("SW activate hoyni, state=" + (w ? w.state : "none")));
+        setTimeout(poll, 150);
+      })();
+    }), "SW activate");
     log("10) SW active");
 
     var token = await T(25000, firebase.messaging().getToken({vapidKey: VAPID_KEY, serviceWorkerRegistration: reg}), "getToken");
