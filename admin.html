@@ -2505,12 +2505,11 @@ const SCHEMAS = {
     fields: [
       { key: "photo", label: "ছবি", type: "image" },
       { key: "name", label: "নাম", type: "text" },
-      { key: "role", label: "পদবি", type: "text" },
-      { key: "bio", label: "সংক্ষিপ্ত পরিচিতি (কার্ডে ৩ লাইন পর্যন্ত দেখাবে)", type: "textarea" },
-      { key: "phone", label: "ফোন নম্বর (ঐচ্ছিক) — কার্ডে কল বাটন আসবে", type: "text" },
-      { key: "facebook", label: "ফেসবুক লিংক (ঐচ্ছিক)", type: "text" }
+      { key: "role", label: "পদবি ১ (ছবির উপরে বাম কোণে দেখাবে)", type: "text" },
+      { key: "role2", label: "পদবি ২ (ছবির নিচে দেখাবে, ঐচ্ছিক)", type: "text" },
+      { key: "bio", label: "সংক্ষিপ্ত পরিচিতি (কার্ডে ৩ লাইন পর্যন্ত দেখাবে)", type: "textarea" }
     ],
-    blank: () => ({ id: genId(), name: "", role: "", bio: "", photo: "", phone: "", facebook: "" })
+    blank: () => ({ id: genId(), name: "", role: "", role2: "", bio: "", photo: "" })
   },
   faq: {
     title: "প্রশ্ন", listKey: "faqs",
@@ -2740,7 +2739,6 @@ document.getElementById("itemModalSaveBtn").addEventListener("click", () => {
     if (!currentModalItem.name) { showToast("স্পনসরের নাম লিখুন"); return; }
     currentModalItem.link = fixUrl(currentModalItem.link);
   }
-  if (currentModalType === "team") currentModalItem.facebook = fixUrl(currentModalItem.facebook);
 
   const list = landingData[schema.listKey];
   const idx = list.findIndex(x => x.id === currentModalItem.id);

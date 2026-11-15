@@ -870,27 +870,24 @@ function renderRecordsGrid() {
    নিচে সংক্ষিপ্ত পরিচিতি + কল / ফেসবুক বাটন। ক্রম এডমিন প্যানেল থেকে ঠিক করা হয়।
    ============================================================ */
 function teamCardTemplate(m) {
-  const fb = safeHttpsUrl(m.facebook);
-  const phoneRaw = String(m.phone || "").trim();
-  const phone = phoneRaw.replace(/[^0-9+]/g, "");
   const bio = (m.bio || "").trim();
-  const role = (m.role || "").trim();
-  const contact =
-    (phone ? '<a class="tcLink" href="tel:' + escAttr(phone) + '" aria-label="কল করুন"><i class="fa-solid fa-phone" aria-hidden="true"></i></a>' : "") +
-    (fb ? '<a class="tcLink tcLinkFb" href="' + escAttr(fb) + '" target="_blank" rel="noopener noreferrer" aria-label="ফেসবুক"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>' : "");
+  const role = (m.role || "").trim();   // পদবি ১ — ছবির উপরে বাম কোণে
+  const role2 = (m.role2 || "").trim(); // পদবি ২ — ছবির নিচে (আগে যেখানে নাম ছিল)
+  const hasBody = !!(role2 || bio);
   return (
     '<article class="tcCard" data-team-id="' + escAttr(m.id) + '">' +
       '<div class="tcPhoto placeholderMode">' +
         '<div class="imgSkeleton" aria-hidden="true"></div>' +
         '<img class="tcImg" alt="' + escAttr(m.name) + '">' +
         '<span class="tcPlaceholder"><i class="fa-solid fa-user" aria-hidden="true"></i></span>' +
+        (role ? '<span class="tcTag">' + escAttr(role) + '</span>' : "") +
+        '<h3 class="tcNameOver">' + escAttr(m.name || "") + '</h3>' +
       '</div>' +
+      (hasBody ?
       '<div class="tcBody">' +
-        '<h3 class="tcName">' + escAttr(m.name || "") + '</h3>' +
-        (role ? '<span class="tcRole" data-text="' + escAttr(role) + '"><span class="tcRoleText">' + escAttr(role) + '</span></span>' : "") +
+        (role2 ? '<span class="tcRole" data-text="' + escAttr(role2) + '"><span class="tcRoleText">' + escAttr(role2) + '</span></span>' : "") +
         (bio ? '<p class="tcBio">' + escAttr(bio) + '</p>' : "") +
-        (contact ? '<div class="tcContact">' + contact + '</div>' : "") +
-      '</div>' +
+      '</div>' : "") +
     '</article>'
   );
 }
@@ -913,18 +910,11 @@ function openTeamSheet(id) {
     sh.addEventListener("click", e => { if (e.target.closest("[data-ts-close]")) closeTeamSheet(); });
     document.addEventListener("keydown", e => { if (e.key === "Escape") closeTeamSheet(); });
   }
-  const fb = safeHttpsUrl(m.facebook);
-  const phoneRaw = String(m.phone || "").trim();
-  const phone = phoneRaw.replace(/[^0-9+]/g, "");
   const box = sh.querySelector(".tsContent");
   box.innerHTML =
     '<div class="tsHead"><div class="tsPhoto placeholderMode"><div class="imgSkeleton" aria-hidden="true"></div><img alt="' + escAttr(m.name) + '"><span class="tsPh"><i class="fa-solid fa-user" aria-hidden="true"></i></span></div>' +
-    '<div class="tsHeadText">' + (m.role ? '<span class="tsRole">' + escAttr(m.role) + '</span>' : "") + '<h3 class="tsName">' + escAttr(m.name || "") + '</h3></div></div>' +
-    (m.bio ? '<p class="tsBio">' + escAttr(m.bio) + '</p>' : "") +
-    ((phone || fb) ? '<div class="tsActions">' +
-      (phone ? '<a class="tsBtn tsCall" href="tel:' + escAttr(phone) + '"><i class="fa-solid fa-phone" aria-hidden="true"></i> ' + escAttr(phoneRaw) + '</a>' : "") +
-      (fb ? '<a class="tsBtn tsFb" href="' + escAttr(fb) + '" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i> ফেসবুক</a>' : "") +
-    '</div>' : "");
+    '<div class="tsHeadText">' + (m.role ? '<span class="tsRole">' + escAttr(m.role) + '</span>' : "") + '<h3 class="tsName">' + escAttr(m.name || "") + '</h3>' + (m.role2 ? '<span class="tsRole2">' + escAttr(m.role2) + '</span>' : "") + '</div></div>' +
+    (m.bio ? '<p class="tsBio">' + escAttr(m.bio) + '</p>' : "");
   if (m.photo) {
     const wrap = box.querySelector(".tsPhoto");
     wrap.classList.remove("placeholderMode");
@@ -976,7 +966,7 @@ function renderTeamSection() {
   const container = document.getElementById("teamRow");
   if (!container) return;
   if (isSkeletonLoading()) { skeletonFill(container, "team", 4); return; }
-  const sig = JSON.stringify(landingData.team.map(m => [m.id, m.name, m.role, m.bio, m.photo, m.phone, m.facebook]));
+  const sig = JSON.stringify(landingData.team.map(m => [m.id, m.name, m.role, m.role2, m.bio, m.photo]));
   if (container.getAttribute("data-sig") !== sig || container.getAttribute("data-skel")) {
     container.removeAttribute("data-skel");
     container.setAttribute("data-sig", sig);

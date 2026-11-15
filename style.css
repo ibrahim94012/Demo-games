@@ -2886,6 +2886,21 @@ a.spCard:hover, .spCard:hover { border-color: #C9BDB3; box-shadow: 0 8px 22px rg
   transition: transform .5s var(--ease), opacity .35s var(--ease);
 }
 .tcCard:hover .tcImg { transform: scale(1.05); }
+/* পদবি ১ — ছবির উপরে বাম কোণে */
+.tcTag {
+  position: absolute; top: 10px; left: 10px; z-index: 2; max-width: calc(100% - 20px);
+  padding: 4px 11px; border-radius: 999px; background: var(--crimson); color: #fff;
+  font-size: 12px; font-weight: 700; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+/* নাম — ছবির নিচে বাম কোণে */
+.tcNameOver {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; margin: 0; text-align: left;
+  padding: 34px 14px 11px; color: #fff; font-family: var(--font-display); font-size: 17px; font-weight: 700; line-height: 1.3;
+  background: linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.38) 55%, rgba(0,0,0,0) 100%);
+  overflow-wrap: anywhere; text-shadow: 0 1px 3px rgba(0,0,0,.5);
+}
+.tsRole2 { display: block; margin-top: 4px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
 .tcPhoto.placeholderMode .tcImg { display: none; }
 .loadingImg .tcImg { opacity: 0; }
 .tcPlaceholder { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; }
@@ -2955,7 +2970,8 @@ a.spCard:hover, .spCard:hover { border-color: #C9BDB3; box-shadow: 0 8px 22px rg
   .tcCard:hover .tcImg { transform: none; }
   .tcPhoto { aspect-ratio: 4 / 5; }
   .tcBody { padding: 11px 12px 13px; gap: 5px; }
-  .tcName { font-size: 15px; }
+  .tcNameOver { font-size: 14.5px; padding: 28px 10px 9px; }
+  .tcTag { top: 8px; left: 8px; font-size: 11px; padding: 3px 9px; max-width: calc(100% - 16px); }
   .tcRole { font-size: 11.5px; }
   .tcRoleText { padding: 2px 9px; }
   .tcRoleTrack { padding-left: 9px; }
